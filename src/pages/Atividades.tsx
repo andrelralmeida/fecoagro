@@ -85,6 +85,7 @@ const AtividadesPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50">
+                <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Atividade</TableHead>
                 <TableHead className="w-[100px] text-right">Ações</TableHead>
               </TableRow>
@@ -92,6 +93,9 @@ const AtividadesPage = () => {
             <TableBody>
               {data.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell className="font-mono text-xs text-gray-400">
+                    {item.id.substring(0, 8)}
+                  </TableCell>
                   <TableCell className="font-semibold text-gray-900">
                     {item.atividade}
                   </TableCell>

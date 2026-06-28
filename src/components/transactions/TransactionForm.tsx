@@ -47,8 +47,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Transacao, FormaPagamento } from '@/lib/types'
+import { Transacao, FormaPagamento, NotaFiscal } from '@/lib/types'
 import useTransactionStore from '@/stores/useTransactionStore'
+import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 const formSchema = z.object({
@@ -69,6 +70,7 @@ const formSchema = z.object({
     required_error: 'Por favor selecione uma forma de pagamento.',
   }),
   observacoes: z.string().optional(),
+  nota_fiscal_id: z.string().optional(),
 })
 
 interface TransactionFormProps {
@@ -91,6 +93,18 @@ export function TransactionForm({
     updateTransaction,
   } = useTransactionStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [notasFiscais, setNotasFiscais] = useState<NotaFiscal[]>([])
+
+  useEffect(() => {
+    const fetchNotas = async () => {
+      const { data } = await supabase
+        .from('notas_fiscais')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (data) setNotasFiscais(data as NotaFiscal[])
+    }
+    fetchNotas()
+  }, [])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -104,6 +118,7 @@ export function TransactionForm({
       plano_conta_id: '',
       forma_pagamento_id: FormaPagamento.CartaoCredito,
       data: new Date(),
+      nota_fiscal_id: '',
     },
   })
 
@@ -119,6 +134,7 @@ export function TransactionForm({
         plano_conta_id: transactionToEdit.plano_conta_id || '',
         forma_pagamento_id: transactionToEdit.forma_pagamento_id,
         observacoes: transactionToEdit.observacoes || '',
+        nota_fiscal_id: transactionToEdit.nota_fiscal_id || '',
       })
     } else {
       form.reset({
@@ -131,6 +147,7 @@ export function TransactionForm({
         plano_conta_id: '',
         forma_pagamento_id: FormaPagamento.CartaoCredito,
         data: new Date(),
+        nota_fiscal_id: '',
       })
     }
   }, [transactionToEdit, form, open])
@@ -427,6 +444,34 @@ export function TransactionForm({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nota_fiscal_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nota Fiscal (Opcional)</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma nota fiscal..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {notasFiscais.map((nf) => (
+                        <SelectItem key={nf.id} value={nf.id}>
+                          {nf.numero_nota} — {nf.emissor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

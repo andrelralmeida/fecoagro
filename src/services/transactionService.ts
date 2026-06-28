@@ -16,6 +16,8 @@ const mapToTransacao = (row: any): Transacao => ({
   centro_custo_id: row.centro_custo_id || undefined,
   atividade_id: row.atividade_id || undefined,
   plano_conta_id: row.plano_conta_id || undefined,
+  nota_fiscal_id: row.nota_fiscal_id || undefined,
+  reconciled: row.reconciled || false,
 })
 
 // Helper to map Transacao to DB row
@@ -31,6 +33,7 @@ const mapToRow = (transaction: Omit<Transacao, 'id'>, userId: string) => ({
   centro_custo_id: transaction.centro_custo_id || null,
   atividade_id: transaction.atividade_id || null,
   plano_conta_id: transaction.plano_conta_id || null,
+  nota_fiscal_id: transaction.nota_fiscal_id || null,
 })
 
 export const transactionService = {
@@ -130,6 +133,10 @@ export const transactionService = {
       updates.atividade_id = transaction.atividade_id || null
     if (transaction.plano_conta_id !== undefined)
       updates.plano_conta_id = transaction.plano_conta_id || null
+    if (transaction.nota_fiscal_id !== undefined)
+      updates.nota_fiscal_id = transaction.nota_fiscal_id || null
+    if (transaction.reconciled !== undefined)
+      updates.reconciled = transaction.reconciled
 
     const { data, error } = await supabase
       .from('transactions')

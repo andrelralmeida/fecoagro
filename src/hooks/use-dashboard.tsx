@@ -7,7 +7,9 @@ import {
   CategoryDistribution,
   TipoTransacao,
   PaymentMethodDistribution,
+  CentroCusto,
 } from '@/lib/types'
+import { auxiliaryService } from '@/services/auxiliaryService'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { mockCategories } from '@/lib/data'
@@ -25,6 +27,9 @@ export const useDashboard = () => {
   >([])
   const [paymentDistribution, setPaymentDistribution] = useState<
     PaymentMethodDistribution[]
+  >([])
+  const [costDistribution, setCostDistribution] = useState<
+    CategoryDistribution[]
   >([])
   const [loading, setLoading] = useState(true)
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null)
@@ -44,6 +49,7 @@ export const useDashboard = () => {
       setChartData([])
       setCategoryDistribution([])
       setPaymentDistribution([])
+      setCostDistribution([])
       setSummaryData(null)
       return
     }
@@ -51,15 +57,17 @@ export const useDashboard = () => {
     try {
       setLoading(true)
       // We fetch data regardless of role, trusting RLS and service logic to filter
-      const [kpiData, recentData, monthData, summary] = await Promise.all([
-        dashboardService.getKPIs(),
-        dashboardService.getRecentTransactions(6),
-        dashboardService.getTransactionsForPeriod(
-          startOfMonth(new Date()),
-          endOfMonth(new Date()),
-        ),
-        summaryService.getSummary(),
-      ])
+      const [kpiData, recentData, monthData, summary, centroCustosData] =
+        await Promise.all([
+          dashboardService.getKPIs(),
+          dashboardService.getRecentTransactions(6),
+          dashboardService.getTransactionsForPeriod(
+            startOfMonth(new Date()),
+            endOfMonth(new Date()),
+          ),
+          summaryService.getSummary(),
+          auxiliaryService.fetchCentroCustos(),
+        ])
 
       setKpis(kpiData)
       setRecentTransactions(recentData)
@@ -67,6 +75,7 @@ export const useDashboard = () => {
       processChartData(monthData)
       processCategoryData(monthData)
       processPaymentData(monthData)
+      processCostData(monthData, centroCustosData)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
       toast.error('Erro ao carregar dados do dashboard')
@@ -173,6 +182,51 @@ export const useDashboard = () => {
     setPaymentDistribution(distribution)
   }
 
+  const processCostData = (
+    transactions: Transacao[],
+    centroCustos: CentroCusto[],
+  ) => {
+    const expenses = transactions.filter(
+      (t) => t.tipo_id === TipoTransacao.Despesa,
+    )
+    const totalExpenses = expenses.reduce((acc, curr) => acc + curr.valor, 0)
+
+    const costMap = new Map<string, number>()
+    expenses.forEach((t) => {
+      if (t.centro_custo_id) {
+        const current = costMap.get(t.centro_custo_id) || 0
+        costMap.set(t.centro_custo_id, current + t.valor)
+      }
+    })
+
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-yellow-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-red-500',
+    ]
+
+    const distribution: CategoryDistribution[] = Array.from(costMap.entries())
+      .map(([id, value], index) => {
+        const ccName =
+          centroCustos.find((c) => c.id === id)?.centro_de_custos ||
+          'Sem Centro de Custo'
+        return {
+          name: ccName,
+          value,
+          percentage: totalExpenses > 0 ? (value / totalExpenses) * 100 : 0,
+          color: colors[index % colors.length],
+        }
+      })
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5)
+
+    setCostDistribution(distribution)
+  }
+
   useEffect(() => {
     fetchData()
   }, [fetchData, storeTransactions]) // Refresh when transactions change in store
@@ -183,6 +237,7 @@ export const useDashboard = () => {
     chartData,
     categoryDistribution,
     paymentDistribution,
+    costDistribution,
     loading,
     summaryData,
     summaryLoading,

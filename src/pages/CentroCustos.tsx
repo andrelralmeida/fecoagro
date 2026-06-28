@@ -87,6 +87,7 @@ const CentroCustosPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50">
+                <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Centro de Custos</TableHead>
                 <TableHead className="w-[100px] text-right">Ações</TableHead>
               </TableRow>
@@ -94,6 +95,9 @@ const CentroCustosPage = () => {
             <TableBody>
               {data.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell className="font-mono text-xs text-gray-400">
+                    {item.id.substring(0, 8)}
+                  </TableCell>
                   <TableCell className="font-semibold text-gray-900">
                     {item.centro_de_custos}
                   </TableCell>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Loader2, Upload, User, Mail, Shield } from 'lucide-react'
+import { Loader2, Upload, User, Mail, Shield, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { profileService } from '@/services/profileService'
+import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 const Settings = () => {
@@ -20,6 +21,9 @@ const Settings = () => {
   const [uploading, setUploading] = useState(false)
   const [savingName, setSavingName] = useState(false)
   const [nameValue, setNameValue] = useState(fullName || '')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const userName = fullName || user?.user_metadata?.full_name || 'Usuário'
@@ -58,6 +62,31 @@ const Settings = () => {
       toast.error('Erro ao atualizar nome')
     } finally {
       setSavingName(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem')
+      return
+    }
+    try {
+      setChangingPassword(true)
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+      if (error) throw error
+      toast.success('Senha alterada com sucesso')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch {
+      toast.error('Erro ao alterar senha')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -171,6 +200,63 @@ const Settings = () => {
               {getRoleLabel()}
             </Badge>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="w-5 h-5" />
+            Alterar Senha
+          </CardTitle>
+          <CardDescription>
+            Defina uma nova senha para sua conta.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Nova Senha
+            </label>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Confirmar Senha
+            </label>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repita a nova senha..."
+            />
+          </div>
+          <Button
+            onClick={handleChangePassword}
+            disabled={
+              changingPassword ||
+              !newPassword ||
+              !confirmPassword ||
+              newPassword !== confirmPassword
+            }
+          >
+            {changingPassword ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Alterando...
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 mr-2" />
+                Alterar Senha
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>

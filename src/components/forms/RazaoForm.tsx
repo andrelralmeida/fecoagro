@@ -21,8 +21,16 @@ import {
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet'
-import { Razao } from '@/lib/types'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Razao, PlanoConta } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
+import { auxiliaryService } from '@/services/auxiliaryService'
 import { toast } from 'sonner'
 
 const schema = z.object({
@@ -32,6 +40,7 @@ const schema = z.object({
   debito: z.coerce.number().min(0, 'Débito deve ser >= 0'),
   credito: z.coerce.number().min(0, 'Crédito deve ser >= 0'),
   saldo: z.coerce.number(),
+  plano_conta_id: z.string().optional(),
 })
 
 interface Props {
@@ -43,6 +52,14 @@ interface Props {
 
 export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
   const [submitting, setSubmitting] = useState(false)
+  const [planoContas, setPlanoContas] = useState<PlanoConta[]>([])
+
+  useEffect(() => {
+    auxiliaryService
+      .fetchPlanoContas()
+      .then(setPlanoContas)
+      .catch(() => {})
+  }, [])
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -53,6 +70,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
       debito: 0,
       credito: 0,
       saldo: 0,
+      plano_conta_id: '',
     },
   })
 
@@ -65,6 +83,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
         debito: editItem.debito,
         credito: editItem.credito,
         saldo: editItem.saldo,
+        plano_conta_id: editItem.plano_conta_id || '',
       })
     } else {
       form.reset({
@@ -74,18 +93,31 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
         debito: 0,
         credito: 0,
         saldo: 0,
+        plano_conta_id: '',
       })
     }
   }, [editItem, form, open])
 
+  const handlePlanoContaChange = (value: string) => {
+    form.setValue('plano_conta_id', value)
+    const selected = planoContas.find((p) => p.id === value)
+    if (selected?.classificacao) {
+      form.setValue('conta', selected.classificacao)
+    }
+  }
+
   async function onSubmit(values: z.infer<typeof schema>) {
     try {
       setSubmitting(true)
+      const payload = {
+        ...values,
+        plano_conta_id: values.plano_conta_id || null,
+      }
       if (editItem) {
-        await updateRecord('razao', editItem.id, values)
+        await updateRecord('razao', editItem.id, payload)
         toast.success('Lançamento atualizado com sucesso')
       } else {
-        await createRecord('razao', values)
+        await createRecord('razao', payload)
         toast.success('Lançamento criado com sucesso')
       }
       onOpenChange(false)
@@ -112,6 +144,33 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="plano_conta_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Plano de Contas</FormLabel>
+                  <Select
+                    onValueChange={handlePlanoContaChange}
+                    value={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma conta..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {planoContas.map((pc) => (
+                        <SelectItem key={pc.id} value={pc.id}>
+                          {pc.classificacao} — {pc.descricao}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}

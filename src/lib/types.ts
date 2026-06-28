@@ -33,6 +33,8 @@ export interface Transacao {
   centro_custo_id?: string
   atividade_id?: string
   plano_conta_id?: string
+  nota_fiscal_id?: string
+  reconciled?: boolean
 }
 
 export interface PlanoConta {
@@ -127,6 +129,7 @@ export interface Razao {
   debito: number
   credito: number
   saldo: number
+  plano_conta_id?: string | null
   created_at?: string | null
   updated_at?: string | null
 }

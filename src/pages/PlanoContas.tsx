@@ -25,12 +25,17 @@ import { PlanoContasForm } from '@/components/forms/PlanoContasForm'
 import { PlanoConta } from '@/lib/types'
 import { fetchAll, deleteRecord } from '@/services/crudService'
 import { toast } from 'sonner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PlanoContasPage = () => {
   const [data, setData] = useState<PlanoConta[]>([])
   const [loading, setLoading] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
   const [editItem, setEditItem] = useState<PlanoConta | null>(null)
+  const [tipoFilter, setTipoFilter] = useState('all')
+
+  const filteredData =
+    tipoFilter === 'all' ? data : data.filter((p) => p.tipo === tipoFilter)
 
   const loadData = useCallback(async () => {
     try {
@@ -75,10 +80,24 @@ const PlanoContasPage = () => {
           <p className="text-gray-500 mb-2">Nenhuma conta encontrada.</p>
         </div>
       ) : (
+        {data.length > 0 && (
+          <Select value={tipoFilter} onValueChange={setTipoFilter}>
+            <SelectTrigger className="w-[180px] bg-white">
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Tipos</SelectItem>
+              <SelectItem value="analitica">Analítica</SelectItem>
+              <SelectItem value="sintetica">Sintética</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+
         <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50">
+                <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Classificação</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Tipo</TableHead>
@@ -86,8 +105,11 @@ const PlanoContasPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((item) => (
+              {filteredData.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell className="font-mono text-xs text-gray-400">
+                    {item.id.substring(0, 8)}
+                  </TableCell>
                   <TableCell className="font-mono text-gray-600">
                     {item.classificacao}
                   </TableCell>

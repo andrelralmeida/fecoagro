@@ -49,7 +49,22 @@ const SidebarItem = ({
   </Link>
 )
 
-export function Sidebar() {
+const SidebarGroup = ({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) => (
+  <div>
+    <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      {title}
+    </div>
+    <div className="space-y-1">{children}</div>
+  </div>
+)
+
+export function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const location = useLocation()
   const pathname = location.pathname
   const { signOut, role } = useAuth()
@@ -79,101 +94,103 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#F5F8F5] border-r border-green-100 p-6 flex flex-col z-40 hidden md:flex">
+    <aside
+      className={cn(
+        'h-screen w-[280px] bg-[#F5F8F5] border-r border-green-100 p-6 flex flex-col',
+        mobile ? 'relative z-auto' : 'fixed left-0 top-0 z-40 hidden md:flex',
+      )}
+    >
       <div className="flex items-center gap-3 mb-10 px-2">
         <FecoagroLogo linkTo="/" />
       </div>
 
       <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar">
-        <div>
-          <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Menu
-          </div>
-          <div className="space-y-1">
-            <SidebarItem
-              icon={LayoutDashboard}
-              label="Dashboard"
-              to="/"
-              isActive={pathname === '/'}
-            />
-            <SidebarItem
-              icon={FileWarning}
-              label="Críticas Contábeis"
-              to="/critica"
-              isActive={pathname === '/critica'}
-            />
-            <SidebarItem
-              icon={Receipt}
-              label="Notas Fiscais"
-              to="/notas-fiscais"
-              isActive={pathname === '/notas-fiscais'}
-            />
-            <SidebarItem
-              icon={BookOpen}
-              label="Razão"
-              to="/razao"
-              isActive={pathname === '/razao'}
-            />
-            <SidebarItem
-              icon={Landmark}
-              label="Bancos"
-              to="/bancos"
-              isActive={pathname === '/bancos'}
-            />
-            <SidebarItem
-              icon={ListTree}
-              label="Plano de Contas"
-              to="/plano-contas"
-              isActive={pathname === '/plano-contas'}
-            />
-            <SidebarItem
-              icon={Briefcase}
-              label="Atividades"
-              to="/atividades"
-              isActive={pathname === '/atividades'}
-            />
-            <SidebarItem
-              icon={Building2}
-              label="Centro de Custos"
-              to="/centro-custos"
-              isActive={pathname === '/centro-custos'}
-            />
-            <SidebarItem
-              icon={ReceiptText}
-              label="Extratos"
-              to="/extratos"
-              isActive={pathname === '/extratos'}
-            />
-            {role === 'admin' && (
-              <SidebarItem
-                icon={Users}
-                label="Gerenciar Usuários"
-                to="/users"
-                isActive={pathname === '/users'}
-              />
-            )}
-          </div>
-        </div>
+        <SidebarItem
+          icon={LayoutDashboard}
+          label="Dashboard"
+          to="/"
+          isActive={pathname === '/'}
+        />
 
-        <div>
-          <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Suporte
-          </div>
-          <div className="space-y-1">
+        <SidebarGroup title="Operacional">
+          <SidebarItem
+            icon={FileWarning}
+            label="Críticas Contábeis"
+            to="/critica"
+            isActive={pathname === '/critica'}
+          />
+          <SidebarItem
+            icon={Receipt}
+            label="Notas Fiscais"
+            to="/notas-fiscais"
+            isActive={pathname === '/notas-fiscais'}
+          />
+          <SidebarItem
+            icon={BookOpen}
+            label="Razão"
+            to="/razao"
+            isActive={pathname === '/razao'}
+          />
+        </SidebarGroup>
+
+        <SidebarGroup title="Financeiro">
+          <SidebarItem
+            icon={Landmark}
+            label="Bancos"
+            to="/bancos"
+            isActive={pathname === '/bancos'}
+          />
+          <SidebarItem
+            icon={ReceiptText}
+            label="Extratos"
+            to="/extratos"
+            isActive={pathname === '/extratos'}
+          />
+        </SidebarGroup>
+
+        <SidebarGroup title="Estrutura">
+          <SidebarItem
+            icon={ListTree}
+            label="Plano de Contas"
+            to="/plano-contas"
+            isActive={pathname === '/plano-contas'}
+          />
+          <SidebarItem
+            icon={Briefcase}
+            label="Atividades"
+            to="/atividades"
+            isActive={pathname === '/atividades'}
+          />
+          <SidebarItem
+            icon={Building2}
+            label="Centro de Custos"
+            to="/centro-custos"
+            isActive={pathname === '/centro-custos'}
+          />
+        </SidebarGroup>
+
+        <SidebarGroup title="Sistema">
+          <SidebarItem
+            icon={Settings}
+            label="Configurações"
+            to="/settings"
+            isActive={pathname === '/settings'}
+          />
+          <SidebarItem
+            icon={LifeBuoy}
+            label="Ajuda"
+            to="/help"
+            isActive={pathname === '/help'}
+          />
+          {role === 'admin' && (
             <SidebarItem
-              icon={LifeBuoy}
-              label="Ajuda"
-              to="/help"
-              isActive={pathname === '/help'}
+              icon={Users}
+              label="Gerenciar Usuários"
+              to="/users"
+              isActive={pathname === '/users'}
             />
-            <SidebarItem
-              icon={Settings}
-              label="Configurações"
-              to="/settings"
-              isActive={pathname === '/settings'}
-            />
-          </div>
-        </div>
+          )}
+        </SidebarGroup>
       </div>
 
       <div className="mt-auto space-y-2">

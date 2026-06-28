@@ -7,6 +7,7 @@ import { ExpenseDistribution } from '@/components/dashboard/ExpenseDistribution'
 import { KPIMetric } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
+import { CostDistributionChart } from '@/components/dashboard/CostDistributionChart'
 
 const Index = () => {
   const {
@@ -15,6 +16,7 @@ const Index = () => {
     chartData,
     categoryDistribution,
     paymentDistribution,
+    costDistribution,
     loading,
     summaryData,
     summaryLoading,
@@ -138,6 +140,11 @@ const Index = () => {
         <div className="h-full min-h-[400px]">
           <ExpenseDistribution data={paymentDistribution} />
         </div>
+      </div>
+
+      {/* Cost Distribution by Centro de Custos */}
+      <div className="h-[400px]">
+        <CostDistributionChart data={costDistribution} />
       </div>
     </div>
   )

@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Landmark, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import {
+  Landmark,
+  ArrowUpRight,
+  ArrowDownLeft,
+  FileUp,
+  CheckCircle2,
+  Circle,
+  Loader2,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -15,16 +25,20 @@ import { supabase } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PdfImportModal } from '@/components/pdf/PdfImportModal'
 
 const formatCurrency = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    v,
-  )
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(v)
 
 export default function Extratos() {
   const [bancos, setBancos] = useState<Banco[]>([])
   const [movements, setMovements] = useState<Transacao[]>([])
   const [loading, setLoading] = useState(true)
+  const [pdfOpen, setPdfOpen] = useState(false)
+  const [reconciling, setReconciling] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
     try {
@@ -35,7 +49,7 @@ export default function Extratos() {
           .from('transactions')
           .select('*')
           .order('date', { ascending: false })
-          .limit(20),
+          .limit(50),
       ])
       setBancos(bancosData)
 
@@ -49,6 +63,7 @@ export default function Extratos() {
           tipo_id: row.type as TipoTransacao,
           forma_pagamento_id: row.payment_method as FormaPagamento,
           observacoes: row.notes as string | undefined,
+          reconciled: (row.reconciled as boolean) || false,
         }),
       )
       setMovements(mapped)
@@ -64,6 +79,27 @@ export default function Extratos() {
   }, [loadData])
 
   const totalBalance = bancos.reduce((sum, b) => sum + b.saldo_atual, 0)
+  const reconciledCount = movements.filter((m) => m.reconciled).length
+  const unreconciled = movements.filter((m) => !m.reconciled)
+
+  const handleReconcile = async (id: string) => {
+    try {
+      setReconciling(id)
+      const { error } = await supabase
+        .from('transactions')
+        .update({ reconciled: true })
+        .eq('id', id)
+      if (error) throw error
+      setMovements((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, reconciled: true } : m)),
+      )
+      toast.success('Transação reconciliada com sucesso')
+    } catch {
+      toast.error('Erro ao reconciliar transação')
+    } finally {
+      setReconciling(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -75,11 +111,18 @@ export default function Extratos() {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Extratos Bancários</h1>
-        <p className="text-gray-500">
-          Acompanhe movimentações e saldos das contas.
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Extratos Bancários
+          </h1>
+          <p className="text-gray-500">
+            Acompanhe movimentações, saldos e reconciliação.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => setPdfOpen(true)}>
+          <FileUp className="w-4 h-4 mr-2" /> Importar Extrato PDF
+        </Button>
       </div>
 
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex items-center justify-between">
@@ -122,6 +165,101 @@ export default function Extratos() {
         ))}
       </div>
 
+      {/* Reconciliation Section */}
+      <Card className="rounded-xl border shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold flex items-center justify-between">
+            <span>Reconciliação</span>
+            <Badge
+              variant="secondary"
+              className="bg-primary/10 text-primary font-normal"
+            >
+              {reconciledCount} / {movements.length} reconciliadas
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 overflow-auto">
+          {unreconciled.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50/50">
+                  <TableHead className="w-[120px]">Data</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-[140px] text-right">Ação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {unreconciled.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell className="text-gray-600 text-sm">
+                      {format(m.data, 'dd/MM/yyyy')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            'w-7 h-7 rounded-full flex items-center justify-center',
+                            m.tipo_id === TipoTransacao.Receita
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-red-100 text-red-600',
+                          )}
+                        >
+                          {m.tipo_id === TipoTransacao.Receita ? (
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowDownLeft className="w-3.5 h-3.5" />
+                          )}
+                        </div>
+                        <span className="font-medium text-gray-900 text-sm">
+                          {m.descricao}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        'text-right font-bold text-sm',
+                        m.tipo_id === TipoTransacao.Receita
+                          ? 'text-green-600'
+                          : 'text-gray-900',
+                      )}
+                    >
+                      {m.tipo_id === TipoTransacao.Receita ? '+' : '-'}
+                      {formatCurrency(m.valor)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReconcile(m.id)}
+                        disabled={reconciling === m.id}
+                      >
+                        {reconciling === m.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                            Reconciliar
+                          </>
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <CheckCircle2 className="w-10 h-10 text-green-500 mb-2" />
+              <p className="text-gray-500 text-sm">
+                Todas as transações estão reconciliadas.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Movements */}
       <Card className="rounded-xl border shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg font-bold">
@@ -137,6 +275,9 @@ export default function Extratos() {
                   <TableHead>Descrição</TableHead>
                   <TableHead>Forma de Pagamento</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-[100px] text-center">
+                    Status
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -180,6 +321,13 @@ export default function Extratos() {
                       {m.tipo_id === TipoTransacao.Receita ? '+' : '-'}
                       {formatCurrency(m.valor)}
                     </TableCell>
+                    <TableCell className="text-center">
+                      {m.reconciled ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-500 inline" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-gray-300 inline" />
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -193,6 +341,13 @@ export default function Extratos() {
           )}
         </CardContent>
       </Card>
+
+      <PdfImportModal
+        open={pdfOpen}
+        onOpenChange={setPdfOpen}
+        entityType="transactions"
+        onSuccess={loadData}
+      />
     </div>
   )
 }

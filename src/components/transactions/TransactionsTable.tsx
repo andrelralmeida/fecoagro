@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Edit, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { Edit, Eye, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -10,12 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Transacao, TipoTransacao } from '@/lib/types'
+import { Transacao, Atividade, CentroCusto, PlanoConta } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface TransactionsTableProps {
   data: Transacao[]
   onEdit: (transaction: Transacao) => void
+  onView: (transaction: Transacao) => void
+  onDelete: (transaction: Transacao) => void
+  atividades: Atividade[]
+  centroCustos: CentroCusto[]
+  planoContas: PlanoConta[]
 }
 
 const formatCurrency = (v: number) =>
@@ -35,11 +40,37 @@ const safeFormatDate = (value: string | null | undefined): string => {
   }
 }
 
-export function TransactionsTable({ data, onEdit }: TransactionsTableProps) {
+export function TransactionsTable({
+  data,
+  onEdit,
+  onView,
+  onDelete,
+  atividades,
+  centroCustos,
+  planoContas,
+}: TransactionsTableProps) {
+  const getAtividadeLabel = (id: number | null) => {
+    if (!id) return '-'
+    const a = atividades.find((x) => x.id === id)
+    return a ? `${a.id} - ${a.atividade}` : '-'
+  }
+
+  const getCentroCustoLabel = (id: number | null) => {
+    if (!id) return '-'
+    const c = centroCustos.find((x) => x.id === id)
+    return c ? `${c.id} - ${c.centro_de_custos}` : '-'
+  }
+
+  const getPlanoContaLabel = (id: number | null) => {
+    if (!id) return '-'
+    const p = planoContas.find((x) => x.id === id)
+    return p ? `${p.id} - ${p.descricao || 'Sem descrição'}` : '-'
+  }
+
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl bg-white shadow-sm">
-        <p className="text-gray-500">Nenhuma transação encontrada.</p>
+        <p className="text-gray-500">Nenhuma crítica encontrada.</p>
       </div>
     )
   }
@@ -50,69 +81,51 @@ export function TransactionsTable({ data, onEdit }: TransactionsTableProps) {
         <TableHeader>
           <TableRow className="bg-gray-50/50">
             <TableHead className="w-[120px]">Data</TableHead>
-            <TableHead>Descrição</TableHead>
+            <TableHead>Histórico</TableHead>
             <TableHead className="text-right">Valor</TableHead>
-            <TableHead className="w-[100px]">Tipo</TableHead>
-            <TableHead>Observações</TableHead>
-            <TableHead className="w-[100px] text-center">Status</TableHead>
-            <TableHead className="w-[80px] text-right">Ações</TableHead>
+            <TableHead>Atividade</TableHead>
+            <TableHead>Centro de Custos</TableHead>
+            <TableHead>Conta</TableHead>
+            <TableHead className="w-[110px] text-center">Status</TableHead>
+            <TableHead className="w-[120px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="text-gray-600 text-sm">
-                {safeFormatDate(item.data)}
+                {safeFormatDate(item.date)}
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
-                      item.tipo_id === TipoTransacao.Receita
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-red-100 text-red-600',
-                    )}
-                  >
-                    {item.tipo_id === TipoTransacao.Receita ? (
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    ) : (
-                      <ArrowDownLeft className="w-3.5 h-3.5" />
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-900 text-sm">
-                    {item.descricao}
-                  </span>
-                </div>
+              <TableCell className="font-medium text-gray-900 text-sm">
+                {item.historico || item.description}
               </TableCell>
-              <TableCell
-                className={cn(
-                  'text-right font-bold text-sm',
-                  item.tipo_id === TipoTransacao.Receita
-                    ? 'text-green-600'
-                    : 'text-gray-900',
-                )}
-              >
-                {item.tipo_id === TipoTransacao.Receita ? '+' : '-'}
-                {formatCurrency(item.valor)}
+              <TableCell className="text-right font-bold text-sm text-gray-900">
+                {formatCurrency(item.amount)}
               </TableCell>
-              <TableCell>
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    item.tipo_id === TipoTransacao.Receita
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-red-50 text-red-700',
-                  )}
-                >
-                  {item.tipo_id || 'N/A'}
-                </Badge>
+              <TableCell className="text-gray-600 text-sm">
+                {getAtividadeLabel(item.atividade_id)}
               </TableCell>
-              <TableCell className="text-gray-500 text-sm max-w-[200px] truncate">
-                {item.observacoes || '-'}
+              <TableCell className="text-gray-600 text-sm">
+                {getCentroCustoLabel(item.centro_custo_id)}
+              </TableCell>
+              <TableCell className="text-gray-600 text-sm">
+                {getPlanoContaLabel(item.plano_conta_id)}
               </TableCell>
               <TableCell className="text-center">
-                {item.reconciled ? (
+                {item.status ? (
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      item.status === 'concluido'
+                        ? 'bg-green-50 text-green-700'
+                        : item.status === 'cancelado'
+                          ? 'bg-red-50 text-red-700'
+                          : 'bg-amber-50 text-amber-700',
+                    )}
+                  >
+                    {item.status}
+                  </Badge>
+                ) : item.reconciled ? (
                   <Badge
                     variant="secondary"
                     className="bg-green-50 text-green-700"
@@ -129,14 +142,35 @@ export function TransactionsTable({ data, onEdit }: TransactionsTableProps) {
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-primary hover:bg-primary/10"
-                  onClick={() => onEdit(item)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                    onClick={() => onView(item)}
+                    title="Visualizar"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:bg-primary/10"
+                    onClick={() => onEdit(item)}
+                    title="Editar"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500 hover:bg-red-50"
+                    onClick={() => onDelete(item)}
+                    title="Excluir"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

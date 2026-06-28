@@ -9,8 +9,12 @@ export async function fetchTransactions(
   let query = supabase.from('critica').select('*')
 
   if (filters.column && filters.value) {
-    if (filters.column === 'lote') {
-      query = query.eq(filters.column, parseInt(filters.value))
+    if (filters.column === 'historico') {
+      query = query.or(
+        `historico.ilike.%${filters.value}%,description.ilike.%${filters.value}%`,
+      )
+    } else if (filters.column === 'status') {
+      query = query.eq('status', filters.value)
     } else {
       query = query.ilike(filters.column, `%${filters.value}%`)
     }
@@ -23,7 +27,7 @@ export async function fetchTransactions(
     query = query.lte('date', format(filters.dateRange.to, 'yyyy-MM-dd'))
   }
 
-  query = query.order('date', { ascending: false })
+  query = query.order('created_at', { ascending: false })
 
   const { data, error } = await query
   if (error) throw error

@@ -54,27 +54,52 @@ const DashboardExecutivo = () => {
   const [loading, setLoading] = useState(true)
 
   const loadData = useCallback(async () => {
-    try {
-      setLoading(true)
-      const [kpiData, monthly, suppliers] = await Promise.all([
-        executiveDashboardService.getKPIs(dateRange?.from, dateRange?.to),
-        executiveDashboardService.getMonthlyNotas(
-          dateRange?.from,
-          dateRange?.to,
-        ),
-        executiveDashboardService.getSupplierVolumes(
-          dateRange?.from,
-          dateRange?.to,
-        ),
-      ])
-      setKpis(kpiData)
-      setMonthlyData(monthly)
-      setSupplierData(suppliers)
-    } catch {
-      toast.error('Erro ao carregar dados do dashboard')
-    } finally {
-      setLoading(false)
+    setLoading(true)
+
+    const safeFetch = async <T,>(
+      fn: () => Promise<T>,
+      fallback: T,
+      label: string,
+    ): Promise<T> => {
+      try {
+        return await fn()
+      } catch (err) {
+        console.error(`Erro ao carregar ${label}:`, err)
+        toast.error(`Falha ao carregar: ${label}`)
+        return fallback
+      }
     }
+
+    const [kpiData, monthly, suppliers] = await Promise.all([
+      safeFetch(
+        () => executiveDashboardService.getKPIs(dateRange?.from, dateRange?.to),
+        null,
+        'KPIs',
+      ),
+      safeFetch(
+        () =>
+          executiveDashboardService.getMonthlyNotas(
+            dateRange?.from,
+            dateRange?.to,
+          ),
+        [],
+        'Notas Mensais',
+      ),
+      safeFetch(
+        () =>
+          executiveDashboardService.getSupplierVolumes(
+            dateRange?.from,
+            dateRange?.to,
+          ),
+        [],
+        'Fornecedores',
+      ),
+    ])
+
+    setKpis(kpiData)
+    setMonthlyData(monthly)
+    setSupplierData(suppliers)
+    setLoading(false)
   }, [dateRange?.from?.getTime(), dateRange?.to?.getTime()])
 
   useEffect(() => {
@@ -135,7 +160,7 @@ const DashboardExecutivo = () => {
     ]
   }, [kpis])
 
-  if (loading && !kpis) {
+  if (loading) {
     return (
       <div className="flex flex-col gap-6 p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">

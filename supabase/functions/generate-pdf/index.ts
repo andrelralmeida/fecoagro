@@ -7,7 +7,12 @@ const PAGE_W = 595.28
 const PAGE_H = 841.89
 const MARGIN = 40
 
-function truncateText(text: string, maxWidth: number, font: any, size: number): string {
+function truncateText(
+  text: string,
+  maxWidth: number,
+  font: any,
+  size: number,
+): string {
   if (font.widthOfTextAtSize(text, size) <= maxWidth) return text
   let t = text
   while (t.length > 0 && font.widthOfTextAtSize(t + '...', size) > maxWidth) {
@@ -36,7 +41,10 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     )
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseClient.auth.getUser()
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -46,10 +54,13 @@ Deno.serve(async (req) => {
 
     const { title, columns, rows } = await req.json()
     if (!title || !columns || !rows) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
     }
 
     const pdfDoc = await PDFDocument.create()
@@ -66,26 +77,62 @@ Deno.serve(async (req) => {
     let y = PAGE_H - MARGIN
 
     page.drawText('Gestão Contábil - FECOAGRO', {
-      x: MARGIN, y, size: 14, font: boldFont, color: rgb(0.1, 0.1, 0.35),
+      x: MARGIN,
+      y,
+      size: 14,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.35),
     })
     y -= 18
-    page.drawText(`Data de Geração: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, {
-      x: MARGIN, y, size: 8, font, color: rgb(0.4, 0.4, 0.4),
-    })
+    page.drawText(
+      `Data de Geração: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`,
+      {
+        x: MARGIN,
+        y,
+        size: 8,
+        font,
+        color: rgb(0.4, 0.4, 0.4),
+      },
+    )
     y -= 14
     page.drawText(title, {
-      x: MARGIN, y, size: 12, font: boldFont, color: rgb(0.15, 0.15, 0.15),
+      x: MARGIN,
+      y,
+      size: 12,
+      font: boldFont,
+      color: rgb(0.15, 0.15, 0.15),
     })
     y -= 10
-    page.drawLine({ start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y }, thickness: 1, color: rgb(0.8, 0.8, 0.8) })
+    page.drawLine({
+      start: { x: MARGIN, y },
+      end: { x: PAGE_W - MARGIN, y },
+      thickness: 1,
+      color: rgb(0.8, 0.8, 0.8),
+    })
     y -= 20
 
     const drawHeaders = (p: any, py: number) => {
       columns.forEach((col: any, i: number) => {
-        const text = truncateText(col.header, colWidth - 6, boldFont, headerFontSize)
-        p.drawText(text, { x: MARGIN + i * colWidth + 3, y: py, size: headerFontSize, font: boldFont, color: rgb(0.2, 0.2, 0.2) })
+        const text = truncateText(
+          col.header,
+          colWidth - 6,
+          boldFont,
+          headerFontSize,
+        )
+        p.drawText(text, {
+          x: MARGIN + i * colWidth + 3,
+          y: py,
+          size: headerFontSize,
+          font: boldFont,
+          color: rgb(0.2, 0.2, 0.2),
+        })
       })
-      p.drawLine({ start: { x: MARGIN, y: py - 4 }, end: { x: PAGE_W - MARGIN, y: py - 4 }, thickness: 0.5, color: rgb(0.6, 0.6, 0.6) })
+      p.drawLine({
+        start: { x: MARGIN, y: py - 4 },
+        end: { x: PAGE_W - MARGIN, y: py - 4 },
+        thickness: 0.5,
+        color: rgb(0.6, 0.6, 0.6),
+      })
       return py - rowHeight
     }
 
@@ -100,15 +147,25 @@ Deno.serve(async (req) => {
 
       if (rowIdx % 2 === 1) {
         page.drawRectangle({
-          x: MARGIN, y: y - 2, width: tableWidth, height: rowHeight - 2,
-          color: rgb(0.96, 0.96, 0.97), borderWidth: 0,
+          x: MARGIN,
+          y: y - 2,
+          width: tableWidth,
+          height: rowHeight - 2,
+          color: rgb(0.96, 0.96, 0.97),
+          borderWidth: 0,
         })
       }
 
       columns.forEach((col: any, i: number) => {
         const value = String(row[col.key] ?? '')
         const text = truncateText(value, colWidth - 6, font, fontSize)
-        page.drawText(text, { x: MARGIN + i * colWidth + 3, y, size: fontSize, font, color: rgb(0.25, 0.25, 0.25) })
+        page.drawText(text, {
+          x: MARGIN + i * colWidth + 3,
+          y,
+          size: fontSize,
+          font,
+          color: rgb(0.25, 0.25, 0.25),
+        })
       })
       y -= rowHeight
     })
@@ -116,7 +173,11 @@ Deno.serve(async (req) => {
     const totalPages = pdfDoc.getPageCount()
     pdfDoc.getPages().forEach((p, i) => {
       p.drawText(`Página ${i + 1} de ${totalPages}`, {
-        x: PAGE_W - MARGIN - 80, y: 20, size: 7, font, color: rgb(0.5, 0.5, 0.5),
+        x: PAGE_W - MARGIN - 80,
+        y: 20,
+        size: 7,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
       })
     })
 

@@ -131,7 +131,7 @@ export const executiveDashboardService = {
     const fromStr = dateFrom ? format(dateFrom, 'yyyy-MM-dd') : undefined
     const toStr = dateTo ? format(dateTo, 'yyyy-MM-dd') : undefined
 
-    let query = supabase.from('notas_fiscais').select('emissor, valor_total')
+    let query = supabase.from('notas_fiscais').select('fornecedor, valor_total')
     if (fromStr) query = query.gte('data_emissao', fromStr)
     if (toStr) query = query.lte('data_emissao', toStr)
 
@@ -145,7 +145,7 @@ export const executiveDashboardService = {
     )
 
     for (const row of data || []) {
-      const fornecedor = row.emissor || 'Sem Fornecedor'
+      const fornecedor = row.fornecedor || 'Sem Fornecedor'
       const existing = supplierMap.get(fornecedor) || { total: 0, count: 0 }
       existing.total += Number(row.valor_total)
       existing.count += 1

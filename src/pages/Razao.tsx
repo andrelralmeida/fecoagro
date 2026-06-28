@@ -8,6 +8,7 @@ import {
   Eye,
   Calendar as CalendarIcon,
   X,
+  Filter,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -142,6 +143,21 @@ const RazaoPage = () => {
       .then(setPlanoContas)
       .catch(() => {})
   }, [])
+
+  const hasActiveFilters =
+    filters.dateRange !== undefined ||
+    filters.conta !== 'all' ||
+    filters.valorMin !== '' ||
+    filters.valorMax !== ''
+
+  const clearFilters = () => {
+    setFilters({
+      dateRange: undefined,
+      conta: 'all',
+      valorMin: '',
+      valorMax: '',
+    })
+  }
 
   const handleCreate = () => {
     setEditItem(null)
@@ -323,6 +339,19 @@ const RazaoPage = () => {
           />
         </div>
       </div>
+      {hasActiveFilters && (
+        <div className="flex items-center gap-3">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <X className="mr-2 h-3 w-3" /> Limpar Filtros
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10">

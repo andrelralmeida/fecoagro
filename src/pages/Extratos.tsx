@@ -7,6 +7,7 @@ import {
   Clock,
   Link2,
   Search,
+  X,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -112,6 +113,12 @@ export default function Extratos() {
     setReconcileOpen(true)
   }
 
+  const hasActiveFilters = searchTerm !== ''
+
+  const clearFilters = () => {
+    setSearchTerm('')
+  }
+
   const handleExport = () => {
     if (extratos.length === 0) {
       toast.error('Nenhum dado para exportar')
@@ -204,6 +211,16 @@ export default function Extratos() {
               className="pl-9 bg-white"
             />
           </div>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-9 mb-3 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="mr-2 h-3 w-3" /> Limpar Filtros
+            </Button>
+          )}
           <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
             {filteredBancos.map((banco) => (
               <button

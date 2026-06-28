@@ -77,7 +77,7 @@ const statusColors: Record<string, string> = {
 
 const nfColumns = [
   { key: 'numero_nota', label: 'Número Nota' },
-  { key: 'emissor', label: 'Emissor' },
+  { key: 'emissor', label: 'Fornecedor' },
   { key: 'data_emissao', label: 'Data Emissão' },
   { key: 'valor_total', label: 'Valor Total' },
   { key: 'status', label: 'Status' },
@@ -118,7 +118,6 @@ const NotasFiscais = () => {
         andFilters.push({
           column: 'numero_nota',
           value: numeroFilter.trim(),
-          textCast: true,
         })
       const result = await fetchWithFilters<NotaFiscal>('notas_fiscais', {
         andFilters,
@@ -141,6 +140,19 @@ const NotasFiscais = () => {
     return () => clearTimeout(timer)
   }, [loadData])
 
+  const hasActiveFilters =
+    numeroFilter !== '' ||
+    emissorFilter !== '' ||
+    statusFilter !== 'all' ||
+    dateRange !== undefined
+
+  const clearFilters = () => {
+    setNumeroFilter('')
+    setEmissorFilter('')
+    setStatusFilter('all')
+    setDateRange(undefined)
+  }
+
   const handleCreate = () => {
     setEditItem(null)
     setFormOpen(true)
@@ -161,7 +173,7 @@ const NotasFiscais = () => {
     }
     const headers = [
       'Número da Nota',
-      'Emissor',
+      'Fornecedor',
       'Data de Emissão',
       'Valor Total',
       'Status',
@@ -194,7 +206,7 @@ const NotasFiscais = () => {
             title="Notas Fiscais"
             columns={[
               { header: 'Número', key: 'numero_nota' },
-              { header: 'Emissor', key: 'emissor' },
+              { header: 'Fornecedor', key: 'emissor' },
               { header: 'Data Emissão', key: 'data_emissao' },
               { header: 'Valor Total', key: 'valor_total' },
               { header: 'Status', key: 'status' },
@@ -290,11 +302,11 @@ const NotasFiscais = () => {
         </div>
         <div className="flex-1 w-full">
           <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-            Emissor
+            Fornecedor
           </label>
           <Input
             type="text"
-            placeholder="Filtrar por emissor..."
+            placeholder="Filtrar por fornecedor..."
             value={emissorFilter}
             onChange={(e) => setEmissorFilter(e.target.value)}
             className="w-full"
@@ -317,6 +329,16 @@ const NotasFiscais = () => {
           </Select>
         </div>
       </div>
+      {hasActiveFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <X className="mr-2 h-3 w-3" /> Limpar Filtros
+        </Button>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-10">
@@ -339,7 +361,7 @@ const NotasFiscais = () => {
                   {visibleColumns.data_emissao && (
                     <TableHead>Data Emissão</TableHead>
                   )}
-                  {visibleColumns.emissor && <TableHead>Emissor</TableHead>}
+                  {visibleColumns.emissor && <TableHead>Fornecedor</TableHead>}
                   {visibleColumns.valor_total && (
                     <TableHead className="text-right">Valor</TableHead>
                   )}

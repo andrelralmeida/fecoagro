@@ -8,6 +8,7 @@ import {
   Landmark,
   Search,
   Hash,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -120,6 +121,13 @@ const BancosPage = () => {
 
   const totalSaldo = data.reduce((sum, b) => sum + b.saldo_atual, 0)
 
+  const hasActiveFilters = idFilter !== '' || bankNameFilter !== ''
+
+  const clearFilters = () => {
+    setIdFilter('')
+    setBankNameFilter('')
+  }
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -186,6 +194,16 @@ const BancosPage = () => {
               className="pl-9 bg-white"
             />
           </div>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-9 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="mr-2 h-3 w-3" /> Limpar Filtros
+            </Button>
+          )}
         </div>
       )}
 

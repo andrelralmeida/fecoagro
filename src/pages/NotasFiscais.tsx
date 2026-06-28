@@ -23,8 +23,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import { NotasFiscaisForm } from '@/components/forms/NotasFiscaisForm'
 import { PdfImportModal } from '@/components/pdf/PdfImportModal'
+import {
+  GenericTableFilters,
+  GenericFilterState,
+} from '@/components/GenericTableFilters'
 import { NotaFiscal } from '@/lib/types'
-import { fetchAll, deleteRecord } from '@/services/crudService'
+import { fetchWithFilters, deleteRecord } from '@/services/crudService'
 import { toast } from 'sonner'
 
 const formatCurrency = (v: number) =>
@@ -44,21 +48,35 @@ const NotasFiscais = () => {
   const [formOpen, setFormOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [editItem, setEditItem] = useState<NotaFiscal | null>(null)
+  const [filters, setFilters] = useState<GenericFilterState>({
+    search: '',
+    dateRange: undefined,
+    status: 'all',
+  })
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      const result = await fetchAll<NotaFiscal>('notas_fiscais')
+      const result = await fetchWithFilters<NotaFiscal>('notas_fiscais', {
+        searchColumns: ['numero_nota', 'emissor'],
+        searchValue: filters.search,
+        dateColumn: 'data_emissao',
+        dateFrom: filters.dateRange?.from,
+        dateTo: filters.dateRange?.to,
+        statusColumn: 'status',
+        statusValue: filters.status,
+      })
       setData(result)
     } catch {
       toast.error('Erro ao carregar notas fiscais')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [filters])
 
   useEffect(() => {
-    loadData()
+    const timer = setTimeout(() => loadData(), 300)
+    return () => clearTimeout(timer)
   }, [loadData])
 
   const handleCreate = () => {
@@ -88,6 +106,18 @@ const NotasFiscais = () => {
           </Button>
         </div>
       </div>
+
+      <GenericTableFilters
+        filters={filters}
+        setFilters={setFilters}
+        searchPlaceholder="Buscar por número ou emissor..."
+        statusOptions={[
+          { value: 'pendente', label: 'Pendente' },
+          { value: 'aprovada', label: 'Aprovada' },
+          { value: 'cancelada', label: 'Cancelada' },
+        ]}
+        showStatus={true}
+      />
 
       {loading ? (
         <div className="flex justify-center py-10">

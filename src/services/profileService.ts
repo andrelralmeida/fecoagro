@@ -17,7 +17,7 @@ export const profileService = {
 
   async updateAvatarUrl(userId: string, avatarUrl: string): Promise<void> {
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .update({ avatar_url: avatarUrl })
       .eq('id', userId)
 
@@ -26,7 +26,7 @@ export const profileService = {
 
   async updateFullName(userId: string, fullName: string): Promise<void> {
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .update({ full_name: fullName })
       .eq('id', userId)
 

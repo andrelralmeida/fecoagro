@@ -6,6 +6,7 @@ import { RecentTransactions } from '@/components/dashboard/RecentTransactions'
 import { ExpenseDistribution } from '@/components/dashboard/ExpenseDistribution'
 import { KPIMetric } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SummaryCards } from '@/components/dashboard/SummaryCards'
 
 const Index = () => {
   const {
@@ -15,6 +16,8 @@ const Index = () => {
     categoryDistribution,
     paymentDistribution,
     loading,
+    summaryData,
+    summaryLoading,
   } = useDashboard()
 
   // Transform API data to KPI card format
@@ -113,6 +116,9 @@ const Index = () => {
           </div>
         ))}
       </div>
+
+      {/* Summary Cards */}
+      <SummaryCards data={summaryData} loading={summaryLoading} />
 
       {/* Middle Section: Performance + Categories */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-auto min-h-[400px]">

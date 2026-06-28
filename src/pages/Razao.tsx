@@ -22,8 +22,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import { RazaoForm } from '@/components/forms/RazaoForm'
 import { PdfImportModal } from '@/components/pdf/PdfImportModal'
+import {
+  GenericTableFilters,
+  GenericFilterState,
+} from '@/components/GenericTableFilters'
 import { Razao } from '@/lib/types'
-import { fetchAll, deleteRecord } from '@/services/crudService'
+import { fetchWithFilters, deleteRecord } from '@/services/crudService'
 import { toast } from 'sonner'
 
 const formatCurrency = (v: number) =>
@@ -37,21 +41,33 @@ const RazaoPage = () => {
   const [formOpen, setFormOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [editItem, setEditItem] = useState<Razao | null>(null)
+  const [filters, setFilters] = useState<GenericFilterState>({
+    search: '',
+    dateRange: undefined,
+    status: 'all',
+  })
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      const result = await fetchAll<Razao>('razao')
+      const result = await fetchWithFilters<Razao>('razao', {
+        searchColumns: ['conta', 'descricao'],
+        searchValue: filters.search,
+        dateColumn: 'data',
+        dateFrom: filters.dateRange?.from,
+        dateTo: filters.dateRange?.to,
+      })
       setData(result)
     } catch {
       toast.error('Erro ao carregar lançamentos')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [filters])
 
   useEffect(() => {
-    loadData()
+    const timer = setTimeout(() => loadData(), 300)
+    return () => clearTimeout(timer)
   }, [loadData])
 
   const handleCreate = () => {
@@ -81,6 +97,13 @@ const RazaoPage = () => {
           </Button>
         </div>
       </div>
+
+      <GenericTableFilters
+        filters={filters}
+        setFilters={setFilters}
+        searchPlaceholder="Buscar por conta ou descrição..."
+        showStatus={false}
+      />
 
       {loading ? (
         <div className="flex justify-center py-10">

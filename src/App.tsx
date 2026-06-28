@@ -14,6 +14,10 @@ import Users from './pages/Users'
 import NotasFiscais from './pages/NotasFiscais'
 import Razao from './pages/Razao'
 import Bancos from './pages/Bancos'
+import PlanoContas from './pages/PlanoContas'
+import Atividades from './pages/Atividades'
+import CentroCustos from './pages/CentroCustos'
+import Extratos from './pages/Extratos'
 import { TransactionProvider } from '@/stores/useTransactionStore'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -38,6 +42,10 @@ const App = () => (
                 <Route path="/notas-fiscais" element={<NotasFiscais />} />
                 <Route path="/razao" element={<Razao />} />
                 <Route path="/bancos" element={<Bancos />} />
+                <Route path="/plano-contas" element={<PlanoContas />} />
+                <Route path="/atividades" element={<Atividades />} />
+                <Route path="/centro-custos" element={<CentroCustos />} />
+                <Route path="/extratos" element={<Extratos />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/users" element={<Users />} />

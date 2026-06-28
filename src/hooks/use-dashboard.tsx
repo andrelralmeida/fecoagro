@@ -11,6 +11,7 @@ import {
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { mockCategories } from '@/lib/data'
+import { summaryService, SummaryData } from '@/services/summaryService'
 import { toast } from 'sonner'
 import useTransactionStore from '@/stores/useTransactionStore'
 import { useAuth } from '@/hooks/use-auth'
@@ -26,6 +27,8 @@ export const useDashboard = () => {
     PaymentMethodDistribution[]
   >([])
   const [loading, setLoading] = useState(true)
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(true)
 
   // Listen to transaction store changes to refresh dashboard
   const { transactions: storeTransactions } = useTransactionStore()
@@ -35,28 +38,32 @@ export const useDashboard = () => {
     // If role is not yet determined or is visitante, we might handle it early
     if (role === 'visitante') {
       setLoading(false)
+      setSummaryLoading(false)
       setKpis(null)
       setRecentTransactions([])
       setChartData([])
       setCategoryDistribution([])
       setPaymentDistribution([])
+      setSummaryData(null)
       return
     }
 
     try {
       setLoading(true)
       // We fetch data regardless of role, trusting RLS and service logic to filter
-      const [kpiData, recentData, monthData] = await Promise.all([
+      const [kpiData, recentData, monthData, summary] = await Promise.all([
         dashboardService.getKPIs(),
         dashboardService.getRecentTransactions(6),
         dashboardService.getTransactionsForPeriod(
           startOfMonth(new Date()),
           endOfMonth(new Date()),
         ),
+        summaryService.getSummary(),
       ])
 
       setKpis(kpiData)
       setRecentTransactions(recentData)
+      setSummaryData(summary)
       processChartData(monthData)
       processCategoryData(monthData)
       processPaymentData(monthData)
@@ -65,6 +72,7 @@ export const useDashboard = () => {
       toast.error('Erro ao carregar dados do dashboard')
     } finally {
       setLoading(false)
+      setSummaryLoading(false)
     }
   }, [role])
 
@@ -176,6 +184,8 @@ export const useDashboard = () => {
     categoryDistribution,
     paymentDistribution,
     loading,
+    summaryData,
+    summaryLoading,
     refresh: fetchData,
   }
 }

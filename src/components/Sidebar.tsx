@@ -9,6 +9,10 @@ import {
   Settings,
   LogOut,
   Users,
+  ListTree,
+  Briefcase,
+  Building2,
+  ReceiptText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
@@ -115,6 +119,30 @@ export function Sidebar() {
               label="Bancos"
               to="/bancos"
               isActive={pathname === '/bancos'}
+            />
+            <SidebarItem
+              icon={ListTree}
+              label="Plano de Contas"
+              to="/plano-contas"
+              isActive={pathname === '/plano-contas'}
+            />
+            <SidebarItem
+              icon={Briefcase}
+              label="Atividades"
+              to="/atividades"
+              isActive={pathname === '/atividades'}
+            />
+            <SidebarItem
+              icon={Building2}
+              label="Centro de Custos"
+              to="/centro-custos"
+              isActive={pathname === '/centro-custos'}
+            />
+            <SidebarItem
+              icon={ReceiptText}
+              label="Extratos"
+              to="/extratos"
+              isActive={pathname === '/extratos'}
             />
             {role === 'admin' && (
               <SidebarItem

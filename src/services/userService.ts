@@ -4,7 +4,7 @@ import { UserProfile, Role } from '@/lib/types'
 export const userService = {
   async getAllUsers(): Promise<UserProfile[]> {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .order('created_at', { ascending: false })
 
@@ -14,7 +14,7 @@ export const userService = {
 
   async updateUserRole(userId: string, newRole: Role): Promise<void> {
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .update({ role: newRole })
       .eq('id', userId)
 

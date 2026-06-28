@@ -38,6 +38,12 @@ import {
 } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
 import { toast } from 'sonner'
+import {
+  atividadeOptions,
+  centroCustoOptions,
+  planoContaOptions,
+  notaFiscalOptions,
+} from '@/lib/relational-format'
 
 const schema = z.object({
   date: z.string().min(1, 'Data é obrigatória'),
@@ -257,9 +263,9 @@ export function TransactionForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {atividades.map((a) => (
-                        <SelectItem key={a.id} value={String(a.id)}>
-                          {a.atividade}
+                      {atividadeOptions(atividades).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -281,9 +287,9 @@ export function TransactionForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {centroCustos.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.centro_de_custos}
+                      {centroCustoOptions(centroCustos).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -305,9 +311,9 @@ export function TransactionForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {planoContas.map((p) => (
-                        <SelectItem key={p.id} value={String(p.id)}>
-                          {p.descricao || p.classificacao || `Conta ${p.id}`}
+                      {planoContaOptions(planoContas).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -329,9 +335,9 @@ export function TransactionForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {notasFiscais.map((nf) => (
-                        <SelectItem key={nf.id} value={String(nf.id)}>
-                          {nf.numero_nota}
+                      {notaFiscalOptions(notasFiscais).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

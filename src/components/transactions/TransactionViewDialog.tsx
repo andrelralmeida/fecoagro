@@ -9,6 +9,11 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Transacao, Atividade, CentroCusto, PlanoConta } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import {
+  formatAtividade,
+  formatCentroCusto,
+  formatPlanoConta,
+} from '@/lib/relational-format'
 
 interface TransactionViewDialogProps {
   open: boolean
@@ -42,17 +47,6 @@ export function TransactionViewDialog({
   planoContas,
 }: TransactionViewDialogProps) {
   if (!transaction) return null
-
-  const getLabel = (
-    id: number | null | undefined,
-    list: { id: number }[] | undefined,
-    field: string,
-  ) => {
-    if (!id) return '-'
-    if (!list || !Array.isArray(list)) return String(id)
-    const found = list.find((x) => x.id === id) as any
-    return found ? `${found.id} - ${found[field] || 'Sem descrição'}` : '-'
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,7 +105,7 @@ export function TransactionViewDialog({
                   Atividade
                 </label>
                 <p className="text-sm text-gray-900">
-                  {getLabel(transaction.atividade_id, atividades, 'atividade')}
+                  {formatAtividade(transaction.atividade_id, atividades)}
                 </p>
               </div>
               <div>
@@ -119,18 +113,14 @@ export function TransactionViewDialog({
                   Centro de Custos
                 </label>
                 <p className="text-sm text-gray-900">
-                  {getLabel(
-                    transaction.centro_custo_id,
-                    centroCustos,
-                    'centro_de_custos',
-                  )}
+                  {formatCentroCusto(transaction.centro_custo_id, centroCustos)}
                 </p>
               </div>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500">Conta</label>
               <p className="text-sm text-gray-900">
-                {getLabel(transaction.plano_conta_id, planoContas, 'descricao')}
+                {formatPlanoConta(transaction.plano_conta_id, planoContas)}
               </p>
             </div>
             <div>

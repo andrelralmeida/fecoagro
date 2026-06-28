@@ -20,6 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Atividade, CentroCusto, PlanoConta, NotaFiscal } from '@/lib/types'
+import {
+  atividadeOptions,
+  centroCustoOptions,
+  planoContaOptions,
+  notaFiscalOptions,
+} from '@/lib/relational-format'
 
 export interface CriticaFilterState {
   historico: string
@@ -96,9 +102,9 @@ export function CriticaFilters({
             <SelectValue placeholder="Atividade" />
           </SelectTrigger>
           <SelectContent>
-            {atividades.map((a) => (
-              <SelectItem key={a.id} value={String(a.id)}>
-                {a.atividade}
+            {atividadeOptions(atividades).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -113,9 +119,9 @@ export function CriticaFilters({
             <SelectValue placeholder="Centro de Custos" />
           </SelectTrigger>
           <SelectContent>
-            {centroCustos.map((c) => (
-              <SelectItem key={c.id} value={String(c.id)}>
-                {c.centro_de_custos}
+            {centroCustoOptions(centroCustos).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -130,9 +136,9 @@ export function CriticaFilters({
             <SelectValue placeholder="Conta" />
           </SelectTrigger>
           <SelectContent>
-            {planoContas.map((p) => (
-              <SelectItem key={p.id} value={String(p.id)}>
-                {p.descricao || p.classificacao || `Conta ${p.id}`}
+            {planoContaOptions(planoContas).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -147,9 +153,9 @@ export function CriticaFilters({
             <SelectValue placeholder="Nota Fiscal" />
           </SelectTrigger>
           <SelectContent>
-            {notasFiscais.map((nf) => (
-              <SelectItem key={nf.id} value={String(nf.id)}>
-                {nf.numero_nota}
+            {notaFiscalOptions(notasFiscais).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>

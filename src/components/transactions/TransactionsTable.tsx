@@ -16,6 +16,12 @@ import {
   PlanoConta,
   NotaFiscal,
 } from '@/lib/types'
+import {
+  formatAtividade,
+  formatCentroCusto,
+  formatPlanoConta,
+  formatNotaFiscal,
+} from '@/lib/relational-format'
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -50,20 +56,12 @@ export function TransactionsTable({
   planoContas,
   notasFiscais,
 }: Props) {
-  const getAtividade = (id: number | null) =>
-    id ? atividades.find((a) => a.id === id)?.atividade || '-' : '-'
+  const getAtividade = (id: number | null) => formatAtividade(id, atividades)
   const getCentroCusto = (id: number | null) =>
-    id ? centroCustos.find((c) => c.id === id)?.centro_de_custos || '-' : '-'
-  const getPlanoConta = (id: number | null) => {
-    if (!id) return '-'
-    const p = planoContas.find((p) => p.id === id)
-    return p ? p.descricao || p.classificacao || '-' : '-'
-  }
-  const getNotaFiscal = (id: number | null) => {
-    if (!id) return 'N/A'
-    const nf = notasFiscais.find((nf) => nf.id === id)
-    return nf ? String(nf.numero_nota) : 'N/A'
-  }
+    formatCentroCusto(id, centroCustos)
+  const getPlanoConta = (id: number | null) => formatPlanoConta(id, planoContas)
+  const getNotaFiscal = (id: number | null) =>
+    formatNotaFiscal(id, notasFiscais)
 
   if (data.length === 0) {
     return (

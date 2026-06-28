@@ -1,3 +1,7 @@
+import { format } from 'date-fns'
+import { Edit, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -6,64 +10,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Transacao } from '@/lib/types'
-import { format } from 'date-fns'
-import { Edit, Trash2 } from 'lucide-react'
-import useTransactionStore from '@/stores/useTransactionStore'
+import { Transacao, TipoTransacao } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface TransactionsTableProps {
   data: Transacao[]
   onEdit: (transaction: Transacao) => void
 }
 
+const formatCurrency = (v: number) =>
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(v)
+
 export function TransactionsTable({ data, onEdit }: TransactionsTableProps) {
-  const { centroCustos, atividades, planoContas, deleteTransaction } =
-    useTransactionStore()
-
-  const getCentroCustoName = (id?: string | number) => {
-    if (!id) return '-'
-    const cc = centroCustos.find((c) => String(c.id) === String(id))
-    return cc ? cc.centro_de_custos : '-'
-  }
-
-  const getAtividadeName = (id?: string | number) => {
-    if (!id) return '-'
-    const atv = atividades.find((a) => String(a.id) === String(id))
-    return atv ? atv.atividade : '-'
-  }
-
-  const getPlanoContaName = (id?: string | number) => {
-    if (!id) return '-'
-    const pc = planoContas.find((p) => String(p.id) === String(id))
-    return pc ? pc.descricao : '-'
-  }
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
-
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl bg-white shadow-sm">
-        <p className="text-gray-500 mb-2">Nenhuma crítica encontrada.</p>
-        <p className="text-sm text-gray-400">
-          Ajuste os filtros ou adicione uma nova crítica.
-        </p>
+        <p className="text-gray-500">Nenhuma transação encontrada.</p>
       </div>
     )
   }
@@ -72,86 +37,95 @@ export function TransactionsTable({ data, onEdit }: TransactionsTableProps) {
     <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+          <TableRow className="bg-gray-50/50">
             <TableHead className="w-[120px]">Data</TableHead>
             <TableHead>Descrição</TableHead>
-            <TableHead>Centro de Custo</TableHead>
-            <TableHead>Atividade</TableHead>
-            <TableHead>Descrição da Conta</TableHead>
             <TableHead className="text-right">Valor</TableHead>
-            <TableHead className="w-[100px] text-right">Ações</TableHead>
+            <TableHead className="w-[100px]">Tipo</TableHead>
+            <TableHead>Observações</TableHead>
+            <TableHead className="w-[100px] text-center">Status</TableHead>
+            <TableHead className="w-[80px] text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((transaction) => (
-            <TableRow key={transaction.id}>
-              <TableCell className="font-medium text-gray-600">
-                {format(new Date(transaction.data), 'dd/MM/yyyy')}
+          {data.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="text-gray-600 text-sm">
+                {format(item.data, 'dd/MM/yyyy')}
               </TableCell>
-              <TableCell className="font-semibold text-gray-900">
-                {transaction.descricao}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
+                      item.tipo_id === TipoTransacao.Receita
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-red-100 text-red-600',
+                    )}
+                  >
+                    {item.tipo_id === TipoTransacao.Receita ? (
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    ) : (
+                      <ArrowDownLeft className="w-3.5 h-3.5" />
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900 text-sm">
+                    {item.descricao}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell
+                className={cn(
+                  'text-right font-bold text-sm',
+                  item.tipo_id === TipoTransacao.Receita
+                    ? 'text-green-600'
+                    : 'text-gray-900',
+                )}
+              >
+                {item.tipo_id === TipoTransacao.Receita ? '+' : '-'}
+                {formatCurrency(item.valor)}
               </TableCell>
               <TableCell>
                 <Badge
                   variant="secondary"
-                  className="font-normal text-xs bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className={cn(
+                    item.tipo_id === TipoTransacao.Receita
+                      ? 'bg-green-50 text-green-700'
+                      : 'bg-red-50 text-red-700',
+                  )}
                 >
-                  {getCentroCustoName(transaction.centro_custo_id)}
+                  {item.tipo_id || 'N/A'}
                 </Badge>
               </TableCell>
-              <TableCell className="text-gray-600 text-sm">
-                {getAtividadeName(transaction.atividade_id)}
+              <TableCell className="text-gray-500 text-sm max-w-[200px] truncate">
+                {item.observacoes || '-'}
               </TableCell>
-              <TableCell className="text-gray-600 text-sm">
-                {getPlanoContaName(transaction.plano_conta_id)}
-              </TableCell>
-              <TableCell className="text-right font-bold text-gray-900">
-                {formatCurrency(transaction.valor)}
+              <TableCell className="text-center">
+                {item.reconciled ? (
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-50 text-green-700"
+                  >
+                    Reconciliado
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-50 text-amber-700"
+                  >
+                    Pendente
+                  </Badge>
+                )}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                    onClick={() => onEdit(transaction)}
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Editar</span>
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Excluir</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Tem certeza absoluta?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta ação não pode ser desfeita. Isso excluirá
-                          permanentemente o registro da crítica.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-red-600 hover:bg-red-700"
-                          onClick={() => deleteTransaction(transaction.id)}
-                        >
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-primary hover:bg-primary/10"
+                  onClick={() => onEdit(item)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}

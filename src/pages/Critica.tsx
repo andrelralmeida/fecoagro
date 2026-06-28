@@ -4,15 +4,29 @@ import { Plus, FileUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 import {
-  TransactionFilters,
-  FilterState,
-} from '@/components/transactions/TransactionFilters'
+  ComboboxFilter,
+  ComboboxFilterState,
+  ComboboxFilterColumn,
+} from '@/components/ComboboxFilter'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
 import { PdfImportModal } from '@/components/pdf/PdfImportModal'
 import useTransactionStore from '@/stores/useTransactionStore'
 import { Transacao } from '@/lib/types'
 import { useAuth } from '@/hooks/use-auth'
 import AccessDenied from '@/pages/AccessDenied'
+
+const filterColumns: ComboboxFilterColumn[] = [
+  { value: 'description', label: 'Descrição' },
+  {
+    value: 'type',
+    label: 'Tipo',
+    options: [
+      { value: 'Receita', label: 'Receita' },
+      { value: 'Despesa', label: 'Despesa' },
+    ],
+  },
+  { value: 'notes', label: 'Observações' },
+]
 
 const Critica = () => {
   const { transactions, fetchTransactions, loading, initialized } =
@@ -23,10 +37,9 @@ const Critica = () => {
   const [editingTransaction, setEditingTransaction] =
     useState<Transacao | null>(null)
 
-  const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    category: 'all',
-    paymentMethod: 'all',
+  const [filters, setFilters] = useState<ComboboxFilterState>({
+    column: '',
+    value: '',
     dateRange: undefined,
   })
 
@@ -79,7 +92,11 @@ const Critica = () => {
         </div>
       </div>
 
-      <TransactionFilters filters={filters} setFilters={setFilters} />
+      <ComboboxFilter
+        columns={filterColumns}
+        filters={filters}
+        setFilters={setFilters}
+      />
 
       {showLoading ? (
         <div className="flex justify-center py-10">
@@ -93,6 +110,7 @@ const Critica = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         transactionToEdit={editingTransaction}
+        onSuccess={() => fetchTransactions(filters)}
       />
 
       <PdfImportModal

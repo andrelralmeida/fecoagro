@@ -1,185 +1,55 @@
-import React, {
+import {
   createContext,
   useContext,
   useState,
-  useEffect,
-  ReactNode,
   useCallback,
-  useMemo,
-  useRef,
+  ReactNode,
 } from 'react'
-import {
-  Transacao,
-  Categoria,
-  CentroCusto,
-  Atividade,
-  PlanoConta,
-} from '@/lib/types'
-import { mockCategories } from '@/lib/data'
-import { FilterState } from '@/components/transactions/TransactionFilters'
 import { transactionService } from '@/services/transactionService'
-import { auxiliaryService } from '@/services/auxiliaryService'
+import { ComboboxFilterState } from '@/components/ComboboxFilter'
+import { Transacao, Role } from '@/lib/types'
 import { useAuth } from '@/hooks/use-auth'
-import { toast } from 'sonner'
 
-interface TransactionState {
+interface TransactionStoreType {
   transactions: Transacao[]
-  categories: Categoria[]
-  centroCustos: CentroCusto[]
-  atividades: Atividade[]
-  planoContas: PlanoConta[]
   loading: boolean
   initialized: boolean
-  fetchTransactions: (filters: FilterState) => Promise<void>
-  fetchAuxiliaryData: () => Promise<void>
-  addTransaction: (transaction: Omit<Transacao, 'id'>) => Promise<void>
-  updateTransaction: (
-    id: string,
-    transaction: Partial<Transacao>,
-  ) => Promise<void>
-  deleteTransaction: (id: string) => Promise<void>
+  fetchTransactions: (filters: ComboboxFilterState) => Promise<void>
 }
 
-const TransactionContext = createContext<TransactionState | undefined>(
+const TransactionContext = createContext<TransactionStoreType | undefined>(
   undefined,
 )
 
 export const TransactionProvider = ({ children }: { children: ReactNode }) => {
+  const { role } = useAuth()
   const [transactions, setTransactions] = useState<Transacao[]>([])
-  const [categories] = useState<Categoria[]>(mockCategories)
-  const [centroCustos, setCentroCustos] = useState<CentroCusto[]>([])
-  const [atividades, setAtividades] = useState<Atividade[]>([])
-  const [planoContas, setPlanoContas] = useState<PlanoConta[]>([])
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  const { role } = useAuth()
-
-  const fetchIdRef = useRef(0)
 
   const fetchTransactions = useCallback(
-    async (filters: FilterState) => {
-      if (!role) return
-
-      const currentId = ++fetchIdRef.current
+    async (filters: ComboboxFilterState) => {
       try {
         setLoading(true)
-        const data = await transactionService.fetchTransactions(filters, role)
-
-        if (currentId === fetchIdRef.current) {
-          setTransactions(data)
-        }
-      } catch (error) {
-        if (currentId === fetchIdRef.current) {
-          console.error('Error fetching transactions:', error)
-          toast.error('Erro ao carregar críticas')
-        }
+        const data = await transactionService.fetchTransactions(
+          filters,
+          (role as Role) || 'visitante',
+        )
+        setTransactions(data)
+      } catch {
+        setTransactions([])
       } finally {
-        if (currentId === fetchIdRef.current) {
-          setLoading(false)
-          setInitialized(true)
-        }
+        setLoading(false)
+        setInitialized(true)
       }
     },
     [role],
   )
 
-  const fetchAuxiliaryData = useCallback(async () => {
-    try {
-      const [cc, atv, pc] = await Promise.all([
-        auxiliaryService.fetchCentroCustos(),
-        auxiliaryService.fetchAtividades(),
-        auxiliaryService.fetchPlanoContas(),
-      ])
-      setCentroCustos(cc)
-      setAtividades(atv)
-      setPlanoContas(pc)
-    } catch (error) {
-      console.error('Error fetching auxiliary data:', error)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (role && role !== 'visitante') {
-      fetchAuxiliaryData()
-    }
-  }, [role, fetchAuxiliaryData])
-
-  const addTransaction = useCallback(
-    async (transaction: Omit<Transacao, 'id'>) => {
-      try {
-        const newTransaction =
-          await transactionService.createTransaction(transaction)
-        setTransactions((prev) => [newTransaction, ...prev])
-      } catch (error) {
-        console.error('Error adding transaction:', error)
-        throw error
-      }
-    },
-    [],
-  )
-
-  const updateTransaction = useCallback(
-    async (id: string, updatedFields: Partial<Transacao>) => {
-      try {
-        const updatedTransaction = await transactionService.updateTransaction(
-          id,
-          updatedFields,
-        )
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === id ? updatedTransaction : t)),
-        )
-      } catch (error) {
-        console.error('Error updating transaction:', error)
-        throw error
-      }
-    },
-    [],
-  )
-
-  const deleteTransaction = useCallback(async (id: string) => {
-    try {
-      await transactionService.deleteTransaction(id)
-      setTransactions((prev) => prev.filter((t) => t.id !== id))
-      toast.success('Crítica excluída com sucesso')
-    } catch (error) {
-      console.error('Error deleting transaction:', error)
-      toast.error('Erro ao excluir crítica')
-    }
-  }, [])
-
-  const value = useMemo(
-    () => ({
-      transactions,
-      categories,
-      centroCustos,
-      atividades,
-      planoContas,
-      loading,
-      initialized,
-      fetchTransactions,
-      fetchAuxiliaryData,
-      addTransaction,
-      updateTransaction,
-      deleteTransaction,
-    }),
-    [
-      transactions,
-      categories,
-      centroCustos,
-      atividades,
-      planoContas,
-      loading,
-      initialized,
-      fetchTransactions,
-      fetchAuxiliaryData,
-      addTransaction,
-      updateTransaction,
-      deleteTransaction,
-    ],
-  )
-
   return (
-    <TransactionContext.Provider value={value}>
+    <TransactionContext.Provider
+      value={{ transactions, loading, initialized, fetchTransactions }}
+    >
       {children}
     </TransactionContext.Provider>
   )
@@ -187,11 +57,10 @@ export const TransactionProvider = ({ children }: { children: ReactNode }) => {
 
 const useTransactionStore = () => {
   const context = useContext(TransactionContext)
-  if (!context) {
+  if (!context)
     throw new Error(
-      'useTransactionStore must be used within a TransactionProvider',
+      'useTransactionStore must be used within TransactionProvider',
     )
-  }
   return context
 }
 

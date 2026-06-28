@@ -8,6 +8,7 @@ import { KPIMetric } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
 import { CostDistributionChart } from '@/components/dashboard/CostDistributionChart'
+import { FecoagroLogo } from '@/components/FecoagroLogo'
 
 const Index = () => {
   const {
@@ -110,6 +111,14 @@ const Index = () => {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
+      <div className="flex items-center justify-between">
+        <FecoagroLogo className="h-10" />
+        <div className="text-right hidden sm:block">
+          <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
+          <p className="text-sm text-gray-500">Visão geral financeira</p>
+        </div>
+      </div>
+
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {kpiData.map((kpi, index) => (

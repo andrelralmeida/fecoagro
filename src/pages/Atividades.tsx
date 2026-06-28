@@ -22,10 +22,19 @@ import {
 } from '@/components/ui/alert-dialog'
 import { AtividadesForm } from '@/components/forms/AtividadesForm'
 import { PdfImportModal } from '@/components/pdf/PdfImportModal'
-import { SearchableFilter } from '@/components/SearchableFilter'
+import {
+  ComboboxFilter,
+  ComboboxFilterState,
+  ComboboxFilterColumn,
+} from '@/components/ComboboxFilter'
 import { Atividade } from '@/lib/types'
 import { fetchAll, deleteRecord } from '@/services/crudService'
 import { toast } from 'sonner'
+
+const filterColumns: ComboboxFilterColumn[] = [
+  { value: 'id', label: 'ID' },
+  { value: 'atividade', label: 'Atividade' },
+]
 
 const AtividadesPage = () => {
   const [data, setData] = useState<Atividade[]>([])
@@ -33,12 +42,17 @@ const AtividadesPage = () => {
   const [formOpen, setFormOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [editItem, setEditItem] = useState<Atividade | null>(null)
-  const [atividadeFilter, setAtividadeFilter] = useState('all')
+  const [filters, setFilters] = useState<ComboboxFilterState>({
+    column: '',
+    value: '',
+    dateRange: undefined,
+  })
 
-  const filteredData =
-    atividadeFilter === 'all'
-      ? data
-      : data.filter((a) => a.atividade === atividadeFilter)
+  const filteredData = data.filter((a) => {
+    if (!filters.column || !filters.value) return true
+    const fieldValue = String(a[filters.column as keyof Atividade] ?? '')
+    return fieldValue.toLowerCase().includes(filters.value.toLowerCase())
+  })
 
   const loadData = useCallback(async () => {
     try {
@@ -55,10 +69,6 @@ const AtividadesPage = () => {
   useEffect(() => {
     loadData()
   }, [loadData])
-
-  const atividadeOptions = [...new Set(data.map((a) => a.atividade))].map(
-    (a) => ({ value: a, label: a }),
-  )
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
@@ -93,11 +103,11 @@ const AtividadesPage = () => {
         </div>
       ) : (
         <>
-          <SearchableFilter
-            options={atividadeOptions}
-            value={atividadeFilter}
-            onValueChange={setAtividadeFilter}
-            placeholder="Filtrar por atividade"
+          <ComboboxFilter
+            columns={filterColumns}
+            filters={filters}
+            setFilters={setFilters}
+            showDateRange={false}
           />
 
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">

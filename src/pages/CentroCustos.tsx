@@ -22,10 +22,19 @@ import {
 } from '@/components/ui/alert-dialog'
 import { CentroCustosForm } from '@/components/forms/CentroCustosForm'
 import { PdfImportModal } from '@/components/pdf/PdfImportModal'
-import { SearchableFilter } from '@/components/SearchableFilter'
+import {
+  ComboboxFilter,
+  ComboboxFilterState,
+  ComboboxFilterColumn,
+} from '@/components/ComboboxFilter'
 import { CentroCusto } from '@/lib/types'
 import { fetchAll, deleteRecord } from '@/services/crudService'
 import { toast } from 'sonner'
+
+const filterColumns: ComboboxFilterColumn[] = [
+  { value: 'id', label: 'ID' },
+  { value: 'centro_de_custos', label: 'Centro de Custos' },
+]
 
 const CentroCustosPage = () => {
   const [data, setData] = useState<CentroCusto[]>([])
@@ -33,12 +42,17 @@ const CentroCustosPage = () => {
   const [formOpen, setFormOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [editItem, setEditItem] = useState<CentroCusto | null>(null)
-  const [centroFilter, setCentroFilter] = useState('all')
+  const [filters, setFilters] = useState<ComboboxFilterState>({
+    column: '',
+    value: '',
+    dateRange: undefined,
+  })
 
-  const filteredData =
-    centroFilter === 'all'
-      ? data
-      : data.filter((c) => c.centro_de_custos === centroFilter)
+  const filteredData = data.filter((c) => {
+    if (!filters.column || !filters.value) return true
+    const fieldValue = String(c[filters.column as keyof CentroCusto] ?? '')
+    return fieldValue.toLowerCase().includes(filters.value.toLowerCase())
+  })
 
   const loadData = useCallback(async () => {
     try {
@@ -55,10 +69,6 @@ const CentroCustosPage = () => {
   useEffect(() => {
     loadData()
   }, [loadData])
-
-  const centroOptions = [...new Set(data.map((c) => c.centro_de_custos))].map(
-    (c) => ({ value: c, label: c }),
-  )
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
@@ -95,11 +105,11 @@ const CentroCustosPage = () => {
         </div>
       ) : (
         <>
-          <SearchableFilter
-            options={centroOptions}
-            value={centroFilter}
-            onValueChange={setCentroFilter}
-            placeholder="Filtrar por centro de custo"
+          <ComboboxFilter
+            columns={filterColumns}
+            filters={filters}
+            setFilters={setFilters}
+            showDateRange={false}
           />
 
           <div className="rounded-xl border bg-white shadow-sm overflow-hidden">

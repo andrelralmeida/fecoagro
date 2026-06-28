@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { FilterState } from '@/components/transactions/TransactionFilters'
+import { ComboboxFilterState } from '@/components/ComboboxFilter'
 import { Transacao, TipoTransacao, FormaPagamento, Role } from '@/lib/types'
 import { format } from 'date-fns'
 
@@ -34,22 +34,10 @@ const mapToRow = (transaction: Omit<Transacao, 'id'>, userId: string) => ({
   nota_fiscal_id: transaction.nota_fiscal_id || null,
 })
 
-const textColumns = [
-  'description',
-  'descricao',
-  'conta',
-  'banco',
-  'agencia',
-  'conta_corrente',
-  'numero_nota',
-  'emissor',
-  'atividade',
-  'centro_de_custos',
-  'classificacao',
-]
+const textColumns = ['description', 'notes', 'type']
 
 export const transactionService = {
-  async fetchTransactions(filters: FilterState, role: Role) {
+  async fetchTransactions(filters: ComboboxFilterState, role: Role) {
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -108,7 +96,7 @@ export const transactionService = {
     const updates: any = {}
     if (transaction.data) updates.date = format(transaction.data, 'yyyy-MM-dd')
     if (transaction.descricao) updates.description = transaction.descricao
-    if (transaction.valor) updates.amount = transaction.valor
+    if (transaction.valor !== undefined) updates.amount = transaction.valor
     if (transaction.categoria_id) updates.category = transaction.categoria_id
     if (transaction.tipo_id) updates.type = transaction.tipo_id
     if (transaction.forma_pagamento_id)

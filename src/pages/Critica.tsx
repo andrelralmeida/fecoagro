@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Plus, FileUp } from 'lucide-react'
+import { toast } from 'sonner'
+import { deleteRecord } from '@/services/crudService'
+import { TransactionViewDialog } from '@/components/transactions/TransactionViewDialog'
 
 import { Button } from '@/components/ui/button'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
@@ -36,6 +39,8 @@ const Critica = () => {
   const [isPdfOpen, setIsPdfOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] =
     useState<Transacao | null>(null)
+  const [viewingTransaction, setViewingTransaction] =
+    useState<Transacao | null>(null)
 
   const [filters, setFilters] = useState<ComboboxFilterState>({
     column: '',
@@ -58,6 +63,20 @@ const Critica = () => {
   const handleEdit = (transaction: Transacao) => {
     setEditingTransaction(transaction)
     setIsFormOpen(true)
+  }
+
+  const handleView = (transaction: Transacao) => {
+    setViewingTransaction(transaction)
+  }
+
+  const handleDelete = async (transaction: Transacao) => {
+    try {
+      await deleteRecord('critica', transaction.id)
+      toast.success('Crítica excluída com sucesso')
+      fetchTransactions(filters)
+    } catch {
+      toast.error('Erro ao excluir crítica')
+    }
   }
 
   if (role === 'visitante') {
@@ -91,34 +110,40 @@ const Critica = () => {
           </Button>
         </div>
       </div>
-
       <ComboboxFilter
         columns={filterColumns}
         filters={filters}
         setFilters={setFilters}
       />
-
       {showLoading ? (
         <div className="flex justify-center py-10">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <TransactionsTable data={transactions} onEdit={handleEdit} />
+        <TransactionsTable
+          data={transactions}
+          onEdit={handleEdit}
+          onView={handleView}
+          onDelete={handleDelete}
+        />
       )}
-
       <TransactionForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         transactionToEdit={editingTransaction}
         onSuccess={() => fetchTransactions(filters)}
       />
-
       <PdfImportModal
         open={isPdfOpen}
         onOpenChange={setIsPdfOpen}
         entityType="transactions"
         onSuccess={() => fetchTransactions(filters)}
       />
+      <TransactionViewDialog
+        transaction={viewingTransaction}
+        open={!!viewingTransaction}
+        onOpenChange={(open) => !open && setViewingTransaction(null)}
+      />{' '}
     </div>
   )
 }

@@ -16,11 +16,11 @@ import { cn } from '@/lib/utils'
 interface TransactionsTableProps {
   data: Transacao[]
   onEdit: (transaction: Transacao) => void
-  onView: (transaction: Transacao) => void
-  onDelete: (transaction: Transacao) => void
-  atividades: Atividade[]
-  centroCustos: CentroCusto[]
-  planoContas: PlanoConta[]
+  onView?: (transaction: Transacao) => void
+  onDelete?: (transaction: Transacao) => void
+  atividades?: Atividade[]
+  centroCustos?: CentroCusto[]
+  planoContas?: PlanoConta[]
 }
 
 const formatCurrency = (v: number) =>
@@ -51,20 +51,23 @@ export function TransactionsTable({
 }: TransactionsTableProps) {
   const getAtividadeLabel = (id: number | null) => {
     if (!id) return '-'
+    if (!Array.isArray(atividades)) return String(id)
     const a = atividades.find((x) => x.id === id)
-    return a ? `${a.id} - ${a.atividade}` : '-'
+    return a ? `${a.id} - ${a.atividade}` : String(id)
   }
 
   const getCentroCustoLabel = (id: number | null) => {
     if (!id) return '-'
+    if (!Array.isArray(centroCustos)) return String(id)
     const c = centroCustos.find((x) => x.id === id)
-    return c ? `${c.id} - ${c.centro_de_custos}` : '-'
+    return c ? `${c.id} - ${c.centro_de_custos}` : String(id)
   }
 
   const getPlanoContaLabel = (id: number | null) => {
     if (!id) return '-'
+    if (!Array.isArray(planoContas)) return String(id)
     const p = planoContas.find((x) => x.id === id)
-    return p ? `${p.id} - ${p.descricao || 'Sem descrição'}` : '-'
+    return p ? `${p.id} - ${p.descricao || 'Sem descrição'}` : String(id)
   }
 
   if (data.length === 0) {
@@ -143,15 +146,17 @@ export function TransactionsTable({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-gray-500 hover:bg-gray-100"
-                    onClick={() => onView(item)}
-                    title="Visualizar"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  {onView && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-500 hover:bg-gray-100"
+                      onClick={() => onView(item)}
+                      title="Visualizar"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -161,15 +166,17 @@ export function TransactionsTable({
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-red-500 hover:bg-red-50"
-                    onClick={() => onDelete(item)}
-                    title="Excluir"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-500 hover:bg-red-50"
+                      onClick={() => onDelete(item)}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

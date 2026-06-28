@@ -94,7 +94,7 @@ const AtividadesPage = () => {
               {data.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-mono text-xs text-gray-400">
-                    {item.id.substring(0, 8)}
+                    {String(item.id).substring(0, 8)}
                   </TableCell>
                   <TableCell className="font-semibold text-gray-900">
                     {item.atividade}

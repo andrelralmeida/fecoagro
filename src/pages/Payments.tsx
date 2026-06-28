@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, FileUp } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
@@ -8,6 +8,7 @@ import {
   FilterState,
 } from '@/components/transactions/TransactionFilters'
 import { TransactionsTable } from '@/components/transactions/TransactionsTable'
+import { PdfImportModal } from '@/components/pdf/PdfImportModal'
 import useTransactionStore from '@/stores/useTransactionStore'
 import { Transacao } from '@/lib/types'
 import { useAuth } from '@/hooks/use-auth'
@@ -18,6 +19,7 @@ const Payments = () => {
     useTransactionStore()
   const { role } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isPdfOpen, setIsPdfOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] =
     useState<Transacao | null>(null)
 
@@ -62,18 +64,26 @@ const Payments = () => {
     <div className="flex flex-col gap-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transações</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Críticas Contábeis
+          </h1>
           <p className="text-gray-500">
             Gerencie seus registros financeiros e histórico.
           </p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="shadow-lg hover:shadow-xl transition-all"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Transação
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsPdfOpen(true)}>
+            <FileUp className="w-4 h-4 mr-2" />
+            Importar PDF
+          </Button>
+          <Button
+            onClick={handleCreate}
+            className="shadow-lg hover:shadow-xl transition-all"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Transação
+          </Button>
+        </div>
       </div>
 
       <TransactionFilters filters={filters} setFilters={setFilters} />
@@ -90,6 +100,13 @@ const Payments = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         transactionToEdit={editingTransaction}
+      />
+
+      <PdfImportModal
+        open={isPdfOpen}
+        onOpenChange={setIsPdfOpen}
+        entityType="transactions"
+        onSuccess={() => fetchTransactions(filters)}
       />
     </div>
   )

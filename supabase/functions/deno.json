@@ -1,6 +1,7 @@
 {
   "_versions": {
-    "chat-agent": 3,
-    "welcome-email": 3
+    "chat-agent": 4,
+    "welcome-email": 3,
+    "process-pdf": 1
   }
 }

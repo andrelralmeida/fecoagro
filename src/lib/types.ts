@@ -77,6 +77,42 @@ export interface PaymentMethodDistribution {
   color: string
 }
 
+export interface NotaFiscal {
+  id: string
+  user_id: string
+  numero_nota: string
+  data_emissao: string
+  emissor: string
+  valor_total: number
+  status: string
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export interface Razao {
+  id: string
+  user_id: string
+  data: string
+  conta: string
+  descricao: string
+  debito: number
+  credito: number
+  saldo: number
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export interface Banco {
+  id: string
+  user_id: string
+  banco: string
+  agencia: string
+  conta_corrente: string
+  saldo_atual: number
+  created_at?: string | null
+  updated_at?: string | null
+}
+
 export type Role = 'admin' | 'colaborador' | 'visitante'
 
 export interface UserProfile {

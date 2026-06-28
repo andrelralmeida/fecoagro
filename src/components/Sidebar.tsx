@@ -1,29 +1,32 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
-  Wallet,
+  FileWarning,
+  Receipt,
+  BookOpen,
+  Landmark,
   LifeBuoy,
   Settings,
   LogOut,
   Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
+
+const FECOAGRO_LOGO =
+  'https://www.fecoagro.coop.br/wp-content/uploads/2021/10/logo-top.png'
 
 const SidebarItem = ({
   icon: Icon,
   label,
   to,
   isActive,
-  badge,
 }: {
   icon: any
   label: string
   to: string
   isActive: boolean
-  badge?: string
 }) => (
   <Link
     to={to}
@@ -41,14 +44,6 @@ const SidebarItem = ({
       )}
     />
     <span className="flex-1">{label}</span>
-    {badge && (
-      <Badge
-        variant="secondary"
-        className="bg-red-100 text-red-500 hover:bg-red-200 h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs"
-      >
-        {badge}
-      </Badge>
-    )}
   </Link>
 )
 
@@ -63,7 +58,7 @@ export function Sidebar() {
       await signOut()
       toast.success('Você saiu com sucesso')
       navigate('/login')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao sair')
     }
   }
@@ -82,18 +77,15 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#F8F9FB] border-r border-gray-100 p-6 flex flex-col z-40 hidden md:flex">
-      {/* Brand */}
+    <aside className="fixed left-0 top-0 h-screen w-[280px] bg-[#F5F8F5] border-r border-green-100 p-6 flex flex-col z-40 hidden md:flex">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold text-xl font-display">
-          S
-        </div>
-        <span className="text-2xl font-bold text-gray-900 tracking-tight">
-          Finova
-        </span>
+        <img
+          src={FECOAGRO_LOGO}
+          alt="Fecoagro"
+          className="h-10 w-auto object-contain"
+        />
       </div>
 
-      {/* Menu */}
       <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar">
         <div>
           <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -102,15 +94,33 @@ export function Sidebar() {
           <div className="space-y-1">
             <SidebarItem
               icon={LayoutDashboard}
-              label="Início"
+              label="Dashboard"
               to="/"
               isActive={pathname === '/'}
             />
             <SidebarItem
-              icon={Wallet}
-              label="Transações"
+              icon={FileWarning}
+              label="Críticas Contábeis"
               to="/payments"
               isActive={pathname === '/payments'}
+            />
+            <SidebarItem
+              icon={Receipt}
+              label="Notas Fiscais"
+              to="/notas-fiscais"
+              isActive={pathname === '/notas-fiscais'}
+            />
+            <SidebarItem
+              icon={BookOpen}
+              label="Razão"
+              to="/razao"
+              isActive={pathname === '/razao'}
+            />
+            <SidebarItem
+              icon={Landmark}
+              label="Bancos"
+              to="/bancos"
+              isActive={pathname === '/bancos'}
             />
             {role === 'admin' && (
               <SidebarItem
@@ -144,10 +154,9 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Role Indicator & Logout */}
       <div className="mt-auto space-y-2">
         {role && role !== 'visitante' && (
-          <div className="px-4 py-2 bg-gray-100 rounded-lg text-center">
+          <div className="px-4 py-2 bg-green-50 rounded-lg text-center">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
               Acesso Atual
             </span>

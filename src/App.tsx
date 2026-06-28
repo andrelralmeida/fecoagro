@@ -11,6 +11,9 @@ import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import Users from './pages/Users'
+import NotasFiscais from './pages/NotasFiscais'
+import Razao from './pages/Razao'
+import Bancos from './pages/Bancos'
 import { TransactionProvider } from '@/stores/useTransactionStore'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -32,6 +35,9 @@ const App = () => (
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/payments" element={<Payments />} />
+                <Route path="/notas-fiscais" element={<NotasFiscais />} />
+                <Route path="/razao" element={<Razao />} />
+                <Route path="/bancos" element={<Bancos />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/users" element={<Users />} />

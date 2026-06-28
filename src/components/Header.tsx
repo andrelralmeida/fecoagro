@@ -43,7 +43,7 @@ export function Header() {
         <div className="flex items-center gap-3 pl-2">
           <div className="text-right hidden sm:block">
             <div className="text-sm font-bold text-gray-900">{userName}</div>
-            <div className="text-xs text-gray-500">Membro</div>
+            <div className="text-xs text-gray-500">Fecoagro</div>
           </div>
           <Avatar className="h-10 w-10 border-2 border-white shadow-sm cursor-pointer">
             <AvatarImage

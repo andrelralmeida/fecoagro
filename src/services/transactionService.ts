@@ -23,6 +23,9 @@ export async function fetchTransactions(
   if (filters.nota_fiscal_id) {
     query = query.eq('nota_fiscal_id', Number(filters.nota_fiscal_id))
   }
+  if (filters.filial_id) {
+    query = query.eq('filial_id', Number(filters.filial_id))
+  }
   if (filters.status) {
     query = query.eq('status', filters.status)
   }

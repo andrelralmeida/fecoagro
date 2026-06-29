@@ -54,14 +54,16 @@ import { NotaFiscalViewDialog } from '@/components/NotaFiscalViewDialog'
 import { PdfExportButton } from '@/components/PdfExportButton'
 import { ColumnVisibility } from '@/components/ColumnVisibility'
 import { useColumnVisibility } from '@/hooks/use-column-visibility'
-import { NotaFiscal } from '@/lib/types'
+import { NotaFiscal, Filial } from '@/lib/types'
 import { fetchWithFilters, deleteRecord } from '@/services/crudService'
+import { auxiliaryService } from '@/services/auxiliaryService'
 import {
   exportToCsv,
   buildExportFilename,
   formatCurrencyNumber,
   formatDateBR,
 } from '@/lib/export'
+import { formatFilial } from '@/lib/filial-format'
 import { toast } from 'sonner'
 
 const formatCurrency = (v: number) =>
@@ -81,6 +83,7 @@ const nfColumns = [
   { key: 'data_emissao', label: 'Data Emissão' },
   { key: 'valor_total', label: 'Valor Total' },
   { key: 'status', label: 'Status' },
+  { key: 'filial', label: 'Filial' },
 ]
 
 const NotasFiscais = () => {
@@ -94,7 +97,9 @@ const NotasFiscais = () => {
   const [numeroFilter, setNumeroFilter] = useState('')
   const [emissorFilter, setEmissorFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [filialFilter, setFilialFilter] = useState('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
+  const [filiais, setFiliais] = useState<Filial[]>([])
   const { visibleColumns, toggleColumn } = useColumnVisibility(
     'notas-fiscais',
     nfColumns.map((c) => c.key),
@@ -105,7 +110,7 @@ const NotasFiscais = () => {
       setLoading(true)
       const andFilters: Array<{
         column: string
-        value: string
+        value: string | number
         isText?: boolean
       }> = []
       if (emissorFilter.trim())
@@ -119,6 +124,11 @@ const NotasFiscais = () => {
         andFilters.push({
           column: 'numero_nota',
           value: Number(numericValue),
+        })
+      if (filialFilter !== 'all')
+        andFilters.push({
+          column: 'filial_id',
+          value: Number(filialFilter),
         })
       const result = await fetchWithFilters<NotaFiscal>('notas_fiscais', {
         andFilters,
@@ -134,23 +144,32 @@ const NotasFiscais = () => {
     } finally {
       setLoading(false)
     }
-  }, [emissorFilter, numeroFilter, statusFilter, dateRange])
+  }, [emissorFilter, numeroFilter, statusFilter, filialFilter, dateRange])
 
   useEffect(() => {
     const timer = setTimeout(() => loadData(), 300)
     return () => clearTimeout(timer)
   }, [loadData])
 
+  useEffect(() => {
+    auxiliaryService
+      .fetchFiliais()
+      .then(setFiliais)
+      .catch(() => {})
+  }, [])
+
   const hasActiveFilters =
     numeroFilter !== '' ||
     emissorFilter !== '' ||
     statusFilter !== 'all' ||
+    filialFilter !== 'all' ||
     dateRange !== undefined
 
   const clearFilters = () => {
     setNumeroFilter('')
     setEmissorFilter('')
     setStatusFilter('all')
+    setFilialFilter('all')
     setDateRange(undefined)
   }
 
@@ -178,6 +197,7 @@ const NotasFiscais = () => {
       'Data de Emissão',
       'Valor Total',
       'Status',
+      'Filial',
     ]
     const rows = data.map((item) => [
       item.numero_nota,
@@ -185,6 +205,7 @@ const NotasFiscais = () => {
       formatDateBR(item.data_emissao),
       formatCurrencyNumber(item.valor_total),
       item.status,
+      formatFilial(item.filial_id, filiais),
     ])
     exportToCsv(buildExportFilename('notas_fiscais'), headers, rows)
     toast.success('CSV exportado com sucesso')
@@ -211,6 +232,7 @@ const NotasFiscais = () => {
               { header: 'Data Emissão', key: 'data_emissao' },
               { header: 'Valor Total', key: 'valor_total' },
               { header: 'Status', key: 'status' },
+              { header: 'Filial', key: 'filial' },
             ]}
             data={data.map((item) => ({
               numero_nota: item.numero_nota,
@@ -218,6 +240,7 @@ const NotasFiscais = () => {
               data_emissao: formatDateBR(item.data_emissao),
               valor_total: formatCurrencyNumber(item.valor_total),
               status: item.status,
+              filial: formatFilial(item.filial_id, filiais),
             }))}
           />
           <Button variant="outline" onClick={handleExport}>
@@ -329,6 +352,24 @@ const NotasFiscais = () => {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-full sm:w-48">
+          <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+            Filial
+          </label>
+          <Select value={filialFilter} onValueChange={setFilialFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {filiais.map((f) => (
+                <SelectItem key={f.id} value={String(f.id)}>
+                  {f.filial}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       {hasActiveFilters && (
         <Button
@@ -367,6 +408,7 @@ const NotasFiscais = () => {
                     <TableHead className="text-right">Valor</TableHead>
                   )}
                   {visibleColumns.status && <TableHead>Status</TableHead>}
+                  {visibleColumns.filial && <TableHead>Filial</TableHead>}
                   <TableHead className="w-[150px] text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -403,6 +445,11 @@ const NotasFiscais = () => {
                         >
                           {item.status}
                         </Badge>
+                      </TableCell>
+                    )}
+                    {visibleColumns.filial && (
+                      <TableCell className="text-gray-600 text-sm">
+                        {formatFilial(item.filial_id, filiais)}
                       </TableCell>
                     )}
                     <TableCell className="text-right">
@@ -474,6 +521,7 @@ const NotasFiscais = () => {
         onOpenChange={setFormOpen}
         editItem={editItem}
         onSuccess={loadData}
+        filiais={filiais}
       />
       <PdfImportModal
         open={pdfOpen}
@@ -485,6 +533,7 @@ const NotasFiscais = () => {
         open={viewOpen}
         onOpenChange={setViewOpen}
         item={viewItem}
+        filiais={filiais}
       />
     </div>
   )

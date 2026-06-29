@@ -21,6 +21,7 @@ import {
   CentroCusto,
   PlanoConta,
   NotaFiscal,
+  Filial,
 } from '@/lib/types'
 import { useAuth } from '@/hooks/use-auth'
 import { auxiliaryService } from '@/services/auxiliaryService'
@@ -37,6 +38,7 @@ import {
   formatPlanoConta,
   formatNotaFiscal,
 } from '@/lib/relational-format'
+import { formatFilial } from '@/lib/filial-format'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +65,7 @@ const Critica = () => {
   const [centroCustos, setCentroCustos] = useState<CentroCusto[]>([])
   const [planoContas, setPlanoContas] = useState<PlanoConta[]>([])
   const [notasFiscais, setNotasFiscais] = useState<NotaFiscal[]>([])
+  const [filiais, setFiliais] = useState<Filial[]>([])
 
   const [filters, setFilters] = useState<CriticaFilterState>({
     historico: '',
@@ -70,6 +73,7 @@ const Critica = () => {
     centro_custo_id: '',
     plano_conta_id: '',
     nota_fiscal_id: '',
+    filial_id: '',
     status: '',
     dateRange: undefined,
   })
@@ -80,6 +84,7 @@ const Critica = () => {
     { key: 'amount', label: 'Valor' },
     { key: 'lote', label: 'Lote' },
     { key: 'status', label: 'Status' },
+    { key: 'filial', label: 'Filial' },
     { key: 'reconciled', label: 'Reconciliado' },
   ]
   const { visibleColumns, toggleColumn } = useColumnVisibility(
@@ -103,6 +108,10 @@ const Critica = () => {
     auxiliaryService
       .fetchNotasFiscais()
       .then(setNotasFiscais)
+      .catch(() => {})
+    auxiliaryService
+      .fetchFiliais()
+      .then(setFiliais)
       .catch(() => {})
   }, [])
 
@@ -160,6 +169,7 @@ const Critica = () => {
       'Centro de Custos',
       'Plano de Contas',
       'Nota Fiscal',
+      'Filial',
       'Reconciliado',
     ]
     const rows = transactions.map((t) => [
@@ -171,6 +181,7 @@ const Critica = () => {
       formatCentroCusto(t.centro_custo_id, centroCustos),
       formatPlanoConta(t.plano_conta_id, planoContas),
       formatNotaFiscal(t.nota_fiscal_id, notasFiscais),
+      formatFilial(t.filial_id, filiais),
       t.reconciled ? 'Sim' : 'Não',
     ])
     exportToCsv(buildExportFilename('critica'), headers, rows)
@@ -203,6 +214,7 @@ const Critica = () => {
               { header: 'Atividade', key: 'atividade' },
               { header: 'Centro de Custos', key: 'centro_custo' },
               { header: 'Plano de Contas', key: 'plano_conta' },
+              { header: 'Filial', key: 'filial' },
               { header: 'Reconciliado', key: 'reconciled' },
             ]}
             data={transactions.map((t) => ({
@@ -213,6 +225,7 @@ const Critica = () => {
               atividade: formatAtividade(t.atividade_id, atividades),
               centro_custo: formatCentroCusto(t.centro_custo_id, centroCustos),
               plano_conta: formatPlanoConta(t.plano_conta_id, planoContas),
+              filial: formatFilial(t.filial_id, filiais),
               reconciled: t.reconciled ? 'Sim' : 'Não',
             }))}
           />
@@ -241,6 +254,7 @@ const Critica = () => {
         centroCustos={centroCustos}
         planoContas={planoContas}
         notasFiscais={notasFiscais}
+        filiais={filiais}
       />
       {showLoading ? (
         <div className="flex justify-center py-10">
@@ -256,6 +270,7 @@ const Critica = () => {
           centroCustos={centroCustos}
           planoContas={planoContas}
           notasFiscais={notasFiscais}
+          filiais={filiais}
           visibleColumns={visibleColumns}
         />
       )}
@@ -268,6 +283,7 @@ const Critica = () => {
         centroCustos={centroCustos}
         planoContas={planoContas}
         notasFiscais={notasFiscais}
+        filiais={filiais}
       />
       <PdfImportModal
         open={isPdfOpen}
@@ -282,6 +298,7 @@ const Critica = () => {
         atividades={atividades}
         centroCustos={centroCustos}
         planoContas={planoContas}
+        filiais={filiais}
       />
       <AlertDialog
         open={!!deleteTarget}

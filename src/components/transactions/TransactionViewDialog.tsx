@@ -7,13 +7,20 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { Transacao, Atividade, CentroCusto, PlanoConta } from '@/lib/types'
+import {
+  Transacao,
+  Atividade,
+  CentroCusto,
+  PlanoConta,
+  Filial,
+} from '@/lib/types'
 import { cn } from '@/lib/utils'
 import {
   formatAtividade,
   formatCentroCusto,
   formatPlanoConta,
 } from '@/lib/relational-format'
+import { formatFilial } from '@/lib/filial-format'
 
 interface TransactionViewDialogProps {
   open: boolean
@@ -22,6 +29,7 @@ interface TransactionViewDialogProps {
   atividades: Atividade[]
   centroCustos: CentroCusto[]
   planoContas: PlanoConta[]
+  filiais: Filial[]
 }
 
 const formatCurrency = (v: number) =>
@@ -45,6 +53,7 @@ export function TransactionViewDialog({
   atividades,
   centroCustos,
   planoContas,
+  filiais,
 }: TransactionViewDialogProps) {
   if (!transaction) return null
 
@@ -121,6 +130,14 @@ export function TransactionViewDialog({
               <label className="text-xs font-medium text-gray-500">Conta</label>
               <p className="text-sm text-gray-900">
                 {formatPlanoConta(transaction.plano_conta_id, planoContas)}
+              </p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500">
+                Filial
+              </label>
+              <p className="text-sm text-gray-900">
+                {formatFilial(transaction.filial_id, filiais)}
               </p>
             </div>
             <div>

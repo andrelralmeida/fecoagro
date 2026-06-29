@@ -9,13 +9,15 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { NotaFiscal } from '@/lib/types'
+import { NotaFiscal, Filial } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { formatFilial } from '@/lib/filial-format'
 
 interface NotaFiscalViewDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   item: NotaFiscal | null
+  filiais: Filial[]
 }
 
 const formatCurrency = (v: number) =>
@@ -42,6 +44,7 @@ export function NotaFiscalViewDialog({
   open,
   onOpenChange,
   item,
+  filiais,
 }: NotaFiscalViewDialogProps) {
   if (!item) return null
 
@@ -106,6 +109,14 @@ export function NotaFiscalViewDialog({
                   {item.status}
                 </Badge>
               </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500">
+                Filial
+              </label>
+              <p className="text-sm text-gray-900">
+                {formatFilial(item.filial_id, filiais)}
+              </p>
             </div>
           </div>
         </ScrollArea>

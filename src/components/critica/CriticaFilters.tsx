@@ -19,13 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Atividade, CentroCusto, PlanoConta, NotaFiscal } from '@/lib/types'
+import {
+  Atividade,
+  CentroCusto,
+  PlanoConta,
+  NotaFiscal,
+  Filial,
+} from '@/lib/types'
 import {
   atividadeOptions,
   centroCustoOptions,
   planoContaOptions,
   notaFiscalOptions,
 } from '@/lib/relational-format'
+import { filialOptions } from '@/lib/filial-format'
 
 export interface CriticaFilterState {
   historico: string
@@ -33,6 +40,7 @@ export interface CriticaFilterState {
   centro_custo_id: string
   plano_conta_id: string
   nota_fiscal_id: string
+  filial_id: string
   status: string
   dateRange: DateRange | undefined
 }
@@ -44,6 +52,7 @@ interface CriticaFiltersProps {
   centroCustos: CentroCusto[]
   planoContas: PlanoConta[]
   notasFiscais: NotaFiscal[]
+  filiais: Filial[]
 }
 
 const statusOptions = [
@@ -59,6 +68,7 @@ export function CriticaFilters({
   centroCustos,
   planoContas,
   notasFiscais,
+  filiais,
 }: CriticaFiltersProps) {
   const clearFilters = () => {
     setFilters({
@@ -67,6 +77,7 @@ export function CriticaFilters({
       centro_custo_id: '',
       plano_conta_id: '',
       nota_fiscal_id: '',
+      filial_id: '',
       status: '',
       dateRange: undefined,
     })
@@ -78,6 +89,7 @@ export function CriticaFilters({
     filters.centro_custo_id !== '' ||
     filters.plano_conta_id !== '' ||
     filters.nota_fiscal_id !== '' ||
+    filters.filial_id !== '' ||
     filters.status !== '' ||
     filters.dateRange !== undefined
 
@@ -154,6 +166,23 @@ export function CriticaFilters({
           </SelectTrigger>
           <SelectContent>
             {notaFiscalOptions(notasFiscais).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.filial_id}
+          onValueChange={(val) =>
+            setFilters((prev) => ({ ...prev, filial_id: val }))
+          }
+        >
+          <SelectTrigger className="w-full md:w-[200px] bg-white">
+            <SelectValue placeholder="Filial" />
+          </SelectTrigger>
+          <SelectContent>
+            {filialOptions(filiais).map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>

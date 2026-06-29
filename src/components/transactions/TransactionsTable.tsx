@@ -15,12 +15,14 @@ import {
   CentroCusto,
   PlanoConta,
   NotaFiscal,
+  Filial,
 } from '@/lib/types'
 import {
   formatAtividade,
   formatCentroCusto,
   formatPlanoConta,
 } from '@/lib/relational-format'
+import { formatFilial } from '@/lib/filial-format'
 import { cn } from '@/lib/utils'
 
 const formatCurrency = (v: number) =>
@@ -38,6 +40,7 @@ interface TransactionsTableProps {
   centroCustos: CentroCusto[]
   planoContas: PlanoConta[]
   notasFiscais: NotaFiscal[]
+  filiais: Filial[]
   visibleColumns: Record<string, boolean>
 }
 
@@ -49,6 +52,7 @@ export function TransactionsTable({
   atividades,
   centroCustos,
   planoContas,
+  filiais,
   visibleColumns,
 }: TransactionsTableProps) {
   if (data.length === 0) {
@@ -81,6 +85,7 @@ export function TransactionsTable({
               <TableHead>Atividade</TableHead>
               <TableHead>Centro de Custos</TableHead>
               <TableHead>Plano de Contas</TableHead>
+              {visibleColumns.filial && <TableHead>Filial</TableHead>}
               {visibleColumns.status && (
                 <TableHead className="w-[110px]">Status</TableHead>
               )}
@@ -124,6 +129,11 @@ export function TransactionsTable({
                 <TableCell className="text-gray-600 text-sm">
                   {formatPlanoConta(item.plano_conta_id, planoContas)}
                 </TableCell>
+                {visibleColumns.filial && (
+                  <TableCell className="text-gray-600 text-sm">
+                    {formatFilial(item.filial_id, filiais)}
+                  </TableCell>
+                )}
                 {visibleColumns.status && (
                   <TableCell>
                     <Badge variant="outline" className="text-xs">

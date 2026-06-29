@@ -47,7 +47,7 @@ import { SearchableFilter } from '@/components/SearchableFilter'
 import { PdfExportButton } from '@/components/PdfExportButton'
 import { ColumnVisibility } from '@/components/ColumnVisibility'
 import { useColumnVisibility } from '@/hooks/use-column-visibility'
-import { Razao, PlanoConta } from '@/lib/types'
+import { Razao, PlanoConta, Filial } from '@/lib/types'
 import { fetchWithFilters, deleteRecord } from '@/services/crudService'
 import { auxiliaryService } from '@/services/auxiliaryService'
 import {
@@ -56,12 +56,14 @@ import {
   formatCurrencyNumber,
   formatDateBR,
 } from '@/lib/export'
+import { formatFilial } from '@/lib/filial-format'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface RazaoFilters {
   dateRange: DateRange | undefined
   conta: string
+  filial_id: string
   valorMin: string
   valorMax: string
 }
@@ -79,6 +81,7 @@ const razaoColumns = [
   { key: 'credito', label: 'Crédito' },
   { key: 'saldo', label: 'Saldo' },
   { key: 'lote', label: 'Lote' },
+  { key: 'filial', label: 'Filial' },
 ]
 
 const RazaoPage = () => {
@@ -90,9 +93,11 @@ const RazaoPage = () => {
   const [viewItem, setViewItem] = useState<Razao | null>(null)
   const [viewOpen, setViewOpen] = useState(false)
   const [planoContas, setPlanoContas] = useState<PlanoConta[]>([])
+  const [filiais, setFiliais] = useState<Filial[]>([])
   const [filters, setFilters] = useState<RazaoFilters>({
     dateRange: undefined,
     conta: 'all',
+    filial_id: 'all',
     valorMin: '',
     valorMax: '',
   })
@@ -104,12 +109,20 @@ const RazaoPage = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
+      const andFilters: Array<{ column: string; value: string | number }> = []
+      if (filters.filial_id !== 'all') {
+        andFilters.push({
+          column: 'filial_id',
+          value: Number(filters.filial_id),
+        })
+      }
       const result = await fetchWithFilters<Razao>('razao', {
         dateColumn: 'data',
         dateFrom: filters.dateRange?.from,
         dateTo: filters.dateRange?.to,
         eqColumn: filters.conta !== 'all' ? 'plano_conta_id' : undefined,
         eqValue: filters.conta !== 'all' ? filters.conta : undefined,
+        andFilters,
       })
       let filtered = result
       const minVal = parseFloat(filters.valorMin)
@@ -142,11 +155,16 @@ const RazaoPage = () => {
       .fetchPlanoContas()
       .then(setPlanoContas)
       .catch(() => {})
+    auxiliaryService
+      .fetchFiliais()
+      .then(setFiliais)
+      .catch(() => {})
   }, [])
 
   const hasActiveFilters =
     filters.dateRange !== undefined ||
     filters.conta !== 'all' ||
+    filters.filial_id !== 'all' ||
     filters.valorMin !== '' ||
     filters.valorMax !== ''
 
@@ -154,6 +172,7 @@ const RazaoPage = () => {
     setFilters({
       dateRange: undefined,
       conta: 'all',
+      filial_id: 'all',
       valorMin: '',
       valorMax: '',
     })
@@ -185,6 +204,7 @@ const RazaoPage = () => {
       'Crédito',
       'Saldo',
       'Lote',
+      'Filial',
     ]
     const rows = data.map((item) => [
       formatDateBR(item.data),
@@ -194,6 +214,7 @@ const RazaoPage = () => {
       formatCurrencyNumber(item.credito),
       formatCurrencyNumber(item.saldo),
       item.lote ?? '',
+      formatFilial(item.filial_id, filiais),
     ])
     exportToCsv(buildExportFilename('razao'), headers, rows)
     toast.success('CSV exportado com sucesso')
@@ -202,6 +223,11 @@ const RazaoPage = () => {
   const contaOptions = planoContas.map((p) => ({
     value: String(p.id),
     label: `${p.id} - ${p.descricao}`,
+  }))
+
+  const filialOptionsList = filiais.map((f) => ({
+    value: String(f.id),
+    label: f.filial,
   }))
 
   const getContaLabel = (planoContaId: number | null | undefined) => {
@@ -232,6 +258,7 @@ const RazaoPage = () => {
               { header: 'Débito', key: 'debito' },
               { header: 'Crédito', key: 'credito' },
               { header: 'Saldo', key: 'saldo' },
+              { header: 'Filial', key: 'filial' },
             ]}
             data={data.map((item) => ({
               data: formatDateBR(item.data),
@@ -240,6 +267,7 @@ const RazaoPage = () => {
               debito: formatCurrencyNumber(item.debito),
               credito: formatCurrencyNumber(item.credito),
               saldo: formatCurrencyNumber(item.saldo),
+              filial: formatFilial(item.filial_id, filiais),
             }))}
           />
           <Button variant="outline" onClick={handleExport}>
@@ -318,6 +346,14 @@ const RazaoPage = () => {
           }
           placeholder="Filtrar por conta"
         />
+        <SearchableFilter
+          options={filialOptionsList}
+          value={filters.filial_id}
+          onValueChange={(val) =>
+            setFilters((prev) => ({ ...prev, filial_id: val }))
+          }
+          placeholder="Filtrar por filial"
+        />
         <div className="flex gap-2 items-center">
           <Input
             type="number"
@@ -387,6 +423,7 @@ const RazaoPage = () => {
                   {visibleColumns.lote && (
                     <TableHead className="w-[100px]">Lote</TableHead>
                   )}
+                  {visibleColumns.filial && <TableHead>Filial</TableHead>}
                   <TableHead className="w-[140px] text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -426,6 +463,11 @@ const RazaoPage = () => {
                     {visibleColumns.lote && (
                       <TableCell className="text-gray-600 text-sm">
                         {item.lote ?? '-'}
+                      </TableCell>
+                    )}
+                    {visibleColumns.filial && (
+                      <TableCell className="text-gray-600 text-sm">
+                        {formatFilial(item.filial_id, filiais)}
                       </TableCell>
                     )}
                     <TableCell className="text-right">
@@ -496,6 +538,7 @@ const RazaoPage = () => {
         onOpenChange={setFormOpen}
         editItem={editItem}
         onSuccess={loadData}
+        filiais={filiais}
       />
       <PdfImportModal
         open={pdfOpen}

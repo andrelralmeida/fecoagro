@@ -35,6 +35,7 @@ import {
   CentroCusto,
   PlanoConta,
   NotaFiscal,
+  Filial,
 } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
 import { toast } from 'sonner'
@@ -44,6 +45,7 @@ import {
   planoContaOptions,
   notaFiscalOptions,
 } from '@/lib/relational-format'
+import { filialOptions } from '@/lib/filial-format'
 
 const schema = z.object({
   date: z.string().min(1, 'Data é obrigatória'),
@@ -54,6 +56,7 @@ const schema = z.object({
   centro_custo_id: z.string().optional(),
   plano_conta_id: z.string().optional(),
   nota_fiscal_id: z.string().optional(),
+  filial_id: z.string().optional(),
   reconciled: z.boolean(),
 })
 
@@ -66,6 +69,7 @@ interface Props {
   centroCustos: CentroCusto[]
   planoContas: PlanoConta[]
   notasFiscais: NotaFiscal[]
+  filiais: Filial[]
 }
 
 export function TransactionForm({
@@ -77,6 +81,7 @@ export function TransactionForm({
   centroCustos,
   planoContas,
   notasFiscais,
+  filiais,
 }: Props) {
   const [submitting, setSubmitting] = useState(false)
 
@@ -91,6 +96,7 @@ export function TransactionForm({
       centro_custo_id: '',
       plano_conta_id: '',
       nota_fiscal_id: '',
+      filial_id: '',
       reconciled: false,
     },
   })
@@ -114,6 +120,9 @@ export function TransactionForm({
         nota_fiscal_id: transactionToEdit.nota_fiscal_id
           ? String(transactionToEdit.nota_fiscal_id)
           : '',
+        filial_id: transactionToEdit.filial_id
+          ? String(transactionToEdit.filial_id)
+          : '',
         reconciled: transactionToEdit.reconciled,
       })
     } else {
@@ -126,6 +135,7 @@ export function TransactionForm({
         centro_custo_id: '',
         plano_conta_id: '',
         nota_fiscal_id: '',
+        filial_id: '',
         reconciled: false,
       })
     }
@@ -149,6 +159,7 @@ export function TransactionForm({
         nota_fiscal_id: values.nota_fiscal_id
           ? Number(values.nota_fiscal_id)
           : null,
+        filial_id: values.filial_id ? Number(values.filial_id) : null,
         reconciled: values.reconciled,
       }
       if (transactionToEdit) {
@@ -336,6 +347,30 @@ export function TransactionForm({
                     </FormControl>
                     <SelectContent>
                       {notaFiscalOptions(notasFiscais).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="filial_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Filial</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filialOptions(filiais).map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>

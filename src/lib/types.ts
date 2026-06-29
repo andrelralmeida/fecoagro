@@ -34,6 +34,7 @@ export interface Transacao {
   atividade_id: number | null
   plano_conta_id: number | null
   nota_fiscal_id: number | null
+  filial_id: number | null
   reconciled: boolean
   created_at?: string | null
   updated_at?: string | null
@@ -150,6 +151,7 @@ export interface NotaFiscal {
   emissor: string
   valor_total: number
   status: string
+  filial_id: number | null
   created_at?: string | null
   updated_at?: string | null
 }
@@ -166,6 +168,16 @@ export interface Razao {
   credito: number
   saldo: number
   plano_conta_id?: number | null
+  filial_id?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export interface Filial {
+  id: number
+  user_id: string
+  filial: string
+  cnpj: string
   created_at?: string | null
   updated_at?: string | null
 }

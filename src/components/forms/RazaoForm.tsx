@@ -28,10 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Razao, PlanoConta } from '@/lib/types'
+import { Razao, PlanoConta, Filial } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
 import { auxiliaryService } from '@/services/auxiliaryService'
 import { toast } from 'sonner'
+import { filialOptions } from '@/lib/filial-format'
 
 const schema = z.object({
   data: z.string().min(1, 'Data é obrigatória'),
@@ -41,6 +42,7 @@ const schema = z.object({
   saldo: z.coerce.number(),
   plano_conta_id: z.string().min(1, 'Conta é obrigatória'),
   lote: z.coerce.number().int().optional().nullable(),
+  filial_id: z.string().optional(),
 })
 
 interface Props {
@@ -48,9 +50,16 @@ interface Props {
   onOpenChange: (open: boolean) => void
   editItem?: Razao | null
   onSuccess: () => void
+  filiais: Filial[]
 }
 
-export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
+export function RazaoForm({
+  open,
+  onOpenChange,
+  editItem,
+  onSuccess,
+  filiais,
+}: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [planoContas, setPlanoContas] = useState<PlanoConta[]>([])
 
@@ -71,6 +80,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
       saldo: 0,
       plano_conta_id: '',
       lote: null,
+      filial_id: '',
     },
   })
 
@@ -86,6 +96,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
           ? String(editItem.plano_conta_id)
           : '',
         lote: editItem.lote ?? null,
+        filial_id: editItem.filial_id ? String(editItem.filial_id) : '',
       })
     } else {
       form.reset({
@@ -96,6 +107,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
         saldo: 0,
         plano_conta_id: '',
         lote: null,
+        filial_id: '',
       })
     }
   }, [editItem, form, open])
@@ -116,6 +128,7 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
         saldo: values.saldo,
         plano_conta_id: Number(values.plano_conta_id),
         lote: values.lote || null,
+        filial_id: values.filial_id ? Number(values.filial_id) : null,
       }
       if (editItem) {
         await updateRecord('razao', editItem.id, payload)
@@ -263,6 +276,33 @@ export function RazaoForm({ open, onOpenChange, editItem, onSuccess }: Props) {
                       }}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="filial_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Filial</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma filial..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filialOptions(filiais).map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

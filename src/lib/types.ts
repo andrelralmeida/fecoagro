@@ -169,6 +169,8 @@ export interface Razao {
   saldo: number
   plano_conta_id?: number | null
   filial_id?: number | null
+  atividade_id?: number | null
+  centro_custo_id?: number | null
   created_at?: string | null
   updated_at?: string | null
 }

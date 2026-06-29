@@ -64,24 +64,173 @@ export function parsePlanoContas(
 
 export function parseRazao(text: string, userId: string): any[] {
   const records: any[] = []
-  const contaPattern = /(\d{1,2}\.\d{1,2}\.\d{1,2}\.\d{1,3})/g
-  const contas = [...text.matchAll(contaPattern)]
-  for (let i = 0; i < Math.min(contas.length, 20); i++) {
-    const valorStr = (contas[i].input || '')
-      .substring(contas[i].index)
-      .match(/[\d.,]+/)?.[0]
-      ?.replace(/\./g, '').replace(',', '.') || '0'
-    const valor = parseFloat(valorStr)
-    records.push({
-      user_id: userId,
-      data: new Date().toISOString().split('T')[0],
-      conta: contas[i][1],
-      historico: 'Importado via PDF',
-      debito: valor > 0 ? valor : 0,
-      credito: 0,
-      saldo: valor,
-    })
+  const lines = text.split('\n')
+
+  let planoContaId: number | null = null
+  let contaClassificacao = ''
+
+  const skipPatterns = [
+    /federac[ãa]o\s+cooper/i,
+    /razao\s+cont/i,
+    /p[aá]gina\s+\d+/i,
+    /^[-=_\s]+$/,
+    /cnpj/i,
+    /^data\b.*vlr\s*debit/i,
+    /^data\s+fl\s+ati\s+cc/i,
+  ]
+
+  function convertDate(s: string): string | null {
+    const m = s.match(/(\d{2})\/(\d{2})\/(\d{2,4})/)
+    if (!m) return null
+    let y = m[3]
+    if (y.length === 2) y = '20' + y
+    return `${y}-${m[2]}-${m[1]}`
   }
+
+  function parseBr(s: string): number {
+    if (!s) return 0
+    let neg = false
+    let c = s.trim()
+    if (c.startsWith('-')) {
+      neg = true
+      c = c.substring(1)
+    }
+    const v = parseFloat(c.replace(/\./g, '').replace(',', '.')) || 0
+    return neg ? -v : v
+  }
+
+  for (const line of lines) {
+    const sm = line.match(/(\d{3,6})\s*[-\s].*SINTETICA/i)
+    if (sm) {
+      planoContaId = parseInt(sm[1], 10)
+      contaClassificacao = sm[1]
+      break
+    }
+  }
+  if (!planoContaId) {
+    for (const line of lines) {
+      const cm = line.match(/conta[:\s]+(\d{3,6})/i)
+      if (cm) {
+        planoContaId = parseInt(cm[1], 10)
+        contaClassificacao = cm[1]
+        break
+      }
+    }
+  }
+
+  const dateRe = /(\d{2}\/\d{2}\/\d{2,4})/
+  const brNumRe = /-?[\d.]+,\d{2}/g
+  let pendingHist = ''
+  let pending: any = null
+
+  function flush() {
+    if (pending) {
+      const h = (pending.historico + ' ' + pendingHist)
+        .trim()
+        .replace(/\s+/g, ' ')
+      pending.historico = h
+      records.push(pending)
+      pending = null
+      pendingHist = ''
+    }
+  }
+
+  for (const line of lines) {
+    const t = line.trim()
+    if (!t) {
+      if (pending) pendingHist += ' '
+      continue
+    }
+    if (skipPatterns.some((p) => p.test(t))) continue
+
+    const dm = t.match(dateRe)
+
+    if (dm) {
+      flush()
+      const date = convertDate(dm[1])
+      if (!date) continue
+
+      let rest = t.substring(t.indexOf(dm[1]) + dm[1].length).trim()
+
+      let fl: number | null = null
+      let ati: number | null = null
+      let cc: number | null = null
+
+      const m3 = rest.match(
+        /^(\d{1,4})\s+(\d{1,4})\s+(\d{1,4})\s+(?=[A-Za-zÀ-ÿ])/,
+      )
+      if (m3) {
+        fl = parseInt(m3[1], 10)
+        ati = parseInt(m3[2], 10)
+        cc = parseInt(m3[3], 10)
+        rest = rest.substring(m3[0].length).trim()
+      } else {
+        const m2 = rest.match(/^(\d{1,4})\s+(\d{1,4})\s+(?=[A-Za-zÀ-ÿ])/)
+        if (m2) {
+          fl = parseInt(m2[1], 10)
+          ati = parseInt(m2[2], 10)
+          rest = rest.substring(m2[0].length).trim()
+        } else {
+          const m1 = rest.match(/^(\d{1,4})\s+(?=[A-Za-zÀ-ÿ])/)
+          if (m1) {
+            fl = parseInt(m1[1], 10)
+            rest = rest.substring(m1[0].length).trim()
+          }
+        }
+      }
+
+      const nums = [...rest.matchAll(brNumRe)]
+      let hist = rest
+      let debito = 0
+      let credito = 0
+      let saldo = 0
+
+      if (nums.length >= 3) {
+        const li = nums.length - 1
+        saldo = parseBr(nums[li][0])
+        credito = parseBr(nums[li - 1][0])
+        debito = parseBr(nums[li - 2][0])
+        hist = rest.substring(0, nums[li - 2].index).trim()
+      } else if (nums.length === 2) {
+        saldo = parseBr(nums[1][0])
+        const first = parseBr(nums[0][0])
+        if (/debit/i.test(hist)) debito = first
+        else credito = first
+        hist = rest.substring(0, nums[0].index).trim()
+      } else if (nums.length === 1) {
+        saldo = parseBr(nums[0][0])
+        hist = rest.substring(0, nums[0].index).trim()
+      }
+
+      pending = {
+        user_id: userId,
+        data: date,
+        conta: contaClassificacao || String(planoContaId || ''),
+        historico: hist,
+        debito,
+        credito,
+        saldo,
+        plano_conta_id: planoContaId,
+        filial_id: fl,
+        atividade_id: ati,
+        centro_custo_id: cc,
+      }
+      pendingHist = ''
+    } else if (pending) {
+      const nums = [...t.matchAll(brNumRe)]
+      if (nums.length >= 3 && !t.match(dateRe)) {
+        const li = nums.length - 1
+        pending.saldo = parseBr(nums[li][0])
+        pending.credito = parseBr(nums[li - 1][0])
+        pending.debito = parseBr(nums[li - 2][0])
+        pendingHist += ' ' + t.substring(0, nums[li - 2].index).trim()
+        flush()
+      } else {
+        pendingHist += ' ' + t
+      }
+    }
+  }
+  flush()
   return records
 }
 
@@ -152,16 +301,25 @@ export function parseCritica(text: string, userId: string): any[] {
 
 export function parseCentroCustos(text: string, userId: string): any[] {
   const records: any[] = []
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length >= 3)
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length >= 3)
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
-    records.push({ user_id: userId, centro_de_custos: lines[i].substring(0, 100) })
+    records.push({
+      user_id: userId,
+      centro_de_custos: lines[i].substring(0, 100),
+    })
   }
   return records
 }
 
 export function parseAtividades(text: string, userId: string): any[] {
   const records: any[] = []
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length >= 3)
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length >= 3)
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
     records.push({ user_id: userId, atividade: lines[i].substring(0, 100) })
   }

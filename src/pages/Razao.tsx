@@ -209,7 +209,7 @@ const RazaoPage = () => {
     const rows = data.map((item) => [
       formatDateBR(item.data),
       getContaLabel(item.plano_conta_id),
-      item.descricao,
+      item.historico || item.descricao,
       formatCurrencyNumber(item.debito),
       formatCurrencyNumber(item.credito),
       formatCurrencyNumber(item.saldo),
@@ -263,7 +263,7 @@ const RazaoPage = () => {
             data={data.map((item) => ({
               data: formatDateBR(item.data),
               conta: getContaLabel(item.plano_conta_id),
-              descricao: item.descricao,
+              descricao: item.historico || item.descricao,
               debito: formatCurrencyNumber(item.debito),
               credito: formatCurrencyNumber(item.credito),
               saldo: formatCurrencyNumber(item.saldo),
@@ -442,7 +442,7 @@ const RazaoPage = () => {
                     )}
                     {visibleColumns.historico && (
                       <TableCell className="text-gray-600">
-                        {item.descricao}
+                        {item.historico || item.descricao}
                       </TableCell>
                     )}
                     {visibleColumns.debito && (

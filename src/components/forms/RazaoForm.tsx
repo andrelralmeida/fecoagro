@@ -121,7 +121,6 @@ export function RazaoForm({
       const payload = {
         data: values.data,
         conta: selected?.classificacao || '',
-        descricao: values.historico,
         historico: values.historico,
         debito: values.debito,
         credito: values.credito,

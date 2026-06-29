@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Plus,
   FileUp,
@@ -8,6 +8,9 @@ import {
   ListTree,
   FolderTree,
   List,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -58,6 +61,9 @@ const planoColumns = [
   { key: 'tipo', label: 'Tipo' },
 ]
 
+type SortColumn = 'classificacao' | 'descricao' | 'tipo'
+type SortDirection = 'asc' | 'desc'
+
 const PlanoContasPage = () => {
   const [data, setData] = useState<PlanoConta[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +74,8 @@ const PlanoContasPage = () => {
     'all' | 'analitica' | 'sintetica'
   >('all')
   const [viewMode, setViewMode] = useState<'tree' | 'table'>('tree')
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [filters, setFilters] = useState<ComboboxFilterState>({
     column: '',
     value: '',
@@ -78,13 +86,53 @@ const PlanoContasPage = () => {
     planoColumns.map((c) => c.key),
   )
 
-  const filteredData = data
-    .filter((p) => {
-      if (!filters.column || !filters.value) return true
-      const fieldValue = String(p[filters.column as keyof PlanoConta] ?? '')
-      return fieldValue.toLowerCase().includes(filters.value.toLowerCase())
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) return <ArrowUpDown className="w-3 h-3 ml-1" />
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-3 h-3 ml-1" />
+    ) : (
+      <ArrowDown className="w-3 h-3 ml-1" />
+    )
+  }
+
+  const filteredData = useMemo(() => {
+    const filtered = data
+      .filter((p) => {
+        if (!filters.column || !filters.value) return true
+        const fieldValue = String(p[filters.column as keyof PlanoConta] ?? '')
+        return fieldValue.toLowerCase().includes(filters.value.toLowerCase())
+      })
+      .filter((p) => tipoFilter === 'all' || p.tipo === tipoFilter)
+
+    if (!sortColumn) {
+      return [...filtered].sort((a, b) =>
+        (a.classificacao ?? '').localeCompare(
+          b.classificacao ?? '',
+          undefined,
+          { numeric: true },
+        ),
+      )
+    }
+
+    return [...filtered].sort((a, b) => {
+      const aVal = String(a[sortColumn] ?? '').toLowerCase()
+      const bVal = String(b[sortColumn] ?? '').toLowerCase()
+      const result =
+        sortColumn === 'classificacao'
+          ? aVal.localeCompare(bVal, undefined, { numeric: true })
+          : aVal.localeCompare(bVal)
+      return sortDirection === 'asc' ? result : -result
     })
-    .filter((p) => tipoFilter === 'all' || p.tipo === tipoFilter)
+  }, [data, filters, tipoFilter, sortColumn, sortDirection])
 
   const loadData = useCallback(async () => {
     try {
@@ -235,12 +283,38 @@ const PlanoContasPage = () => {
                     <TableRow className="bg-gray-50/50">
                       <TableHead className="w-[100px]">ID</TableHead>
                       {visibleColumns.classificacao && (
-                        <TableHead>Classificação</TableHead>
+                        <TableHead>
+                          <button
+                            className="flex items-center hover:text-primary transition-colors font-semibold"
+                            onClick={() => handleSort('classificacao')}
+                          >
+                            Classificação
+                            {getSortIcon('classificacao')}
+                          </button>
+                        </TableHead>
                       )}
                       {visibleColumns.descricao && (
-                        <TableHead>Descrição</TableHead>
+                        <TableHead>
+                          <button
+                            className="flex items-center hover:text-primary transition-colors font-semibold"
+                            onClick={() => handleSort('descricao')}
+                          >
+                            Descrição
+                            {getSortIcon('descricao')}
+                          </button>
+                        </TableHead>
                       )}
-                      {visibleColumns.tipo && <TableHead>Tipo</TableHead>}
+                      {visibleColumns.tipo && (
+                        <TableHead>
+                          <button
+                            className="flex items-center hover:text-primary transition-colors font-semibold"
+                            onClick={() => handleSort('tipo')}
+                          >
+                            Tipo
+                            {getSortIcon('tipo')}
+                          </button>
+                        </TableHead>
+                      )}
                       <TableHead className="w-[100px] text-right">
                         Ações
                       </TableHead>

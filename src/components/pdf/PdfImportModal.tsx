@@ -66,7 +66,7 @@ export function PdfImportModal({
   }
 
   const entityLabels: Record<EntityType, string> = {
-    transactions: 'Críticas Contábeis',
+    critica: 'Críticas Contábeis',
     notas_fiscais: 'Notas Fiscais',
     razao: 'Razão',
     bancos: 'Bancos',

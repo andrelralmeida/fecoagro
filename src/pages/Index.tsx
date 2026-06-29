@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Select,
   SelectContent,
@@ -19,6 +19,9 @@ import { KPIMetric } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FecoagroLogo } from '@/components/FecoagroLogo'
 import { formatCurrency } from '@/lib/format'
+import { auxiliaryService } from '@/services/auxiliaryService'
+import { Filial } from '@/lib/types'
+import { filialOptions } from '@/lib/filial-format'
 
 const MONTHS = [
   'Janeiro',
@@ -39,6 +42,8 @@ const Index = () => {
   const now = new Date()
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+  const [filialId, setFilialId] = useState<string>('all')
+  const [filiais, setFiliais] = useState<Filial[]>([])
 
   const dateRange = useMemo(
     () => ({
@@ -54,6 +59,13 @@ const Index = () => {
     now.getFullYear() + 1,
   ]
 
+  useEffect(() => {
+    auxiliaryService
+      .fetchFiliais()
+      .then(setFiliais)
+      .catch(() => {})
+  }, [])
+
   const {
     kpis,
     recentTransactions,
@@ -66,7 +78,7 @@ const Index = () => {
     loading,
     summaryData,
     summaryLoading,
-  } = useDashboard(dateRange)
+  } = useDashboard(dateRange, filialId)
 
   const kpiData: KPIMetric[] = kpis
     ? [
@@ -142,7 +154,20 @@ const Index = () => {
             <p className="text-sm text-gray-500">Visão geral financeira</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={filialId} onValueChange={setFilialId}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todas as Filiais" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Filiais</SelectItem>
+              {filialOptions(filiais).map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             value={String(selectedMonth)}
             onValueChange={(v) => setSelectedMonth(Number(v))}

@@ -19,6 +19,8 @@ import PlanoContas from './pages/PlanoContas'
 import Atividades from './pages/Atividades'
 import CentroCustos from './pages/CentroCustos'
 import Extratos from './pages/Extratos'
+import Balancete from './pages/Balancete'
+import DRE from './pages/DRE'
 import { TransactionProvider } from '@/stores/useTransactionStore'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
@@ -51,6 +53,8 @@ const App = () => (
                 <Route path="/atividades" element={<Atividades />} />
                 <Route path="/centro-custos" element={<CentroCustos />} />
                 <Route path="/extratos" element={<Extratos />} />
+                <Route path="/balancete" element={<Balancete />} />
+                <Route path="/dre" element={<DRE />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/users" element={<Users />} />

@@ -102,10 +102,12 @@ export interface KPIMetric {
 export interface DashboardKPIs {
   totalCriticas: number
   pendingCriticas: number
+  unreconciledCriticas: number
   completedCriticas: number
   totalCriticasAmount: number
   razaoBalance: number
   bankBalance: number
+  monthlyMovement: number
 }
 
 export interface StatusDistribution {
@@ -116,6 +118,8 @@ export interface StatusDistribution {
 
 export interface RazaoEvolutionPoint {
   date: string
+  debito: number
+  credito: number
   saldo: number
 }
 

@@ -12,6 +12,8 @@ import {
   Building2,
   ReceiptText,
   BarChart3,
+  Scale,
+  TrendingUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
@@ -150,6 +152,18 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
             label="Bancos"
             to="/bancos"
             isActive={pathname === '/bancos'}
+          />
+          <SidebarItem
+            icon={Scale}
+            label="Balancete"
+            to="/balancete"
+            isActive={pathname === '/balancete'}
+          />
+          <SidebarItem
+            icon={TrendingUp}
+            label="DRE"
+            to="/dre"
+            isActive={pathname === '/dre'}
           />
         </SidebarGroup>
 

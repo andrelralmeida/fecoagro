@@ -4,11 +4,15 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useSidebarCollapse } from '@/hooks/use-sidebar-collapse'
 import { ExpandableChat } from '@/components/ui/expandable-chat'
 
 export default function Layout() {
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { collapsed } = useSidebarCollapse()
+
+  const desktopSidebarWidth = collapsed ? 'md:ml-[72px]' : 'md:ml-[280px]'
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] flex">
@@ -30,7 +34,9 @@ export default function Layout() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+      <main
+        className={`flex-1 ${desktopSidebarWidth} flex flex-col min-h-screen transition-all duration-300`}
+      >
         <Header
           onMenuClick={isMobile ? () => setSidebarOpen(true) : undefined}
         />

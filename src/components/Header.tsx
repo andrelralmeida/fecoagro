@@ -1,9 +1,9 @@
 import { Search, Bell, FileText, Menu } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { FecoagroLogo } from '@/components/FecoagroLogo'
+import { GlobalSearch } from '@/components/GlobalSearch'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -33,13 +33,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           showOnDesktop={false}
         />
         <div className="hidden md:block flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Buscar..."
-              className="pl-10 bg-white border-transparent shadow-sm rounded-full h-11 focus-visible:ring-1 focus-visible:ring-gray-200"
-            />
-          </div>
+          <GlobalSearch />
         </div>
       </div>
 

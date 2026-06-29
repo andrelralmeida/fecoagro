@@ -79,7 +79,7 @@ const statusColors: Record<string, string> = {
 
 const nfColumns = [
   { key: 'numero_nota', label: 'Número Nota' },
-  { key: 'emissor', label: 'Fornecedor' },
+  { key: 'fornecedor', label: 'Parceiro' },
   { key: 'data_emissao', label: 'Data Emissão' },
   { key: 'valor_total', label: 'Valor Total' },
   { key: 'status', label: 'Status' },
@@ -95,7 +95,7 @@ const NotasFiscais = () => {
   const [viewItem, setViewItem] = useState<NotaFiscal | null>(null)
   const [viewOpen, setViewOpen] = useState(false)
   const [numeroFilter, setNumeroFilter] = useState('')
-  const [emissorFilter, setEmissorFilter] = useState('')
+  const [parceiroFilter, setParceiroFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [filialFilter, setFilialFilter] = useState('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
@@ -113,10 +113,10 @@ const NotasFiscais = () => {
         value: string | number
         isText?: boolean
       }> = []
-      if (emissorFilter.trim())
+      if (parceiroFilter.trim())
         andFilters.push({
-          column: 'emissor',
-          value: emissorFilter.trim(),
+          column: 'fornecedor',
+          value: parceiroFilter.trim(),
           isText: true,
         })
       const numericValue = numeroFilter.trim()
@@ -144,7 +144,7 @@ const NotasFiscais = () => {
     } finally {
       setLoading(false)
     }
-  }, [emissorFilter, numeroFilter, statusFilter, filialFilter, dateRange])
+  }, [parceiroFilter, numeroFilter, statusFilter, filialFilter, dateRange])
 
   useEffect(() => {
     const timer = setTimeout(() => loadData(), 300)
@@ -160,14 +160,14 @@ const NotasFiscais = () => {
 
   const hasActiveFilters =
     numeroFilter !== '' ||
-    emissorFilter !== '' ||
+    parceiroFilter !== '' ||
     statusFilter !== 'all' ||
     filialFilter !== 'all' ||
     dateRange !== undefined
 
   const clearFilters = () => {
     setNumeroFilter('')
-    setEmissorFilter('')
+    setParceiroFilter('')
     setStatusFilter('all')
     setFilialFilter('all')
     setDateRange(undefined)
@@ -193,7 +193,7 @@ const NotasFiscais = () => {
     }
     const headers = [
       'Número da Nota',
-      'Fornecedor',
+      'Parceiro',
       'Data de Emissão',
       'Valor Total',
       'Status',
@@ -201,7 +201,7 @@ const NotasFiscais = () => {
     ]
     const rows = data.map((item) => [
       item.numero_nota,
-      item.emissor,
+      item.fornecedor,
       formatDateBR(item.data_emissao),
       formatCurrencyNumber(item.valor_total),
       item.status,
@@ -228,7 +228,7 @@ const NotasFiscais = () => {
             title="Notas Fiscais"
             columns={[
               { header: 'Número', key: 'numero_nota' },
-              { header: 'Fornecedor', key: 'emissor' },
+              { header: 'Parceiro', key: 'fornecedor' },
               { header: 'Data Emissão', key: 'data_emissao' },
               { header: 'Valor Total', key: 'valor_total' },
               { header: 'Status', key: 'status' },
@@ -236,7 +236,7 @@ const NotasFiscais = () => {
             ]}
             data={data.map((item) => ({
               numero_nota: item.numero_nota,
-              emissor: item.emissor,
+              fornecedor: item.fornecedor,
               data_emissao: formatDateBR(item.data_emissao),
               valor_total: formatCurrencyNumber(item.valor_total),
               status: item.status,
@@ -326,13 +326,13 @@ const NotasFiscais = () => {
         </div>
         <div className="flex-1 w-full">
           <label className="text-sm font-medium text-gray-700 mb-1.5 block">
-            Fornecedor
+            Parceiro
           </label>
           <Input
             type="text"
-            placeholder="Filtrar por fornecedor..."
-            value={emissorFilter}
-            onChange={(e) => setEmissorFilter(e.target.value)}
+            placeholder="Filtrar por parceiro..."
+            value={parceiroFilter}
+            onChange={(e) => setParceiroFilter(e.target.value)}
             className="w-full"
           />
         </div>
@@ -403,7 +403,7 @@ const NotasFiscais = () => {
                   {visibleColumns.data_emissao && (
                     <TableHead>Data Emissão</TableHead>
                   )}
-                  {visibleColumns.emissor && <TableHead>Fornecedor</TableHead>}
+                  {visibleColumns.fornecedor && <TableHead>Parceiro</TableHead>}
                   {visibleColumns.valor_total && (
                     <TableHead className="text-right">Valor</TableHead>
                   )}
@@ -427,9 +427,9 @@ const NotasFiscais = () => {
                         )}
                       </TableCell>
                     )}
-                    {visibleColumns.emissor && (
+                    {visibleColumns.fornecedor && (
                       <TableCell className="text-gray-600">
-                        {item.emissor}
+                        {item.fornecedor}
                       </TableCell>
                     )}
                     {visibleColumns.valor_total && (

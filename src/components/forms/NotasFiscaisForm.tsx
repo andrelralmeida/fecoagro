@@ -36,7 +36,7 @@ import { filialOptions } from '@/lib/filial-format'
 const schema = z.object({
   numero_nota: z.coerce.number().min(1, 'Número é obrigatório'),
   data_emissao: z.string().min(1, 'Data é obrigatória'),
-  emissor: z.string().min(2, 'Emissor é obrigatório'),
+  fornecedor: z.string().min(2, 'Parceiro é obrigatório'),
   valor_total: z.coerce.number().min(0.01, 'Valor deve ser maior que 0'),
   status: z.string().min(1, 'Status é obrigatório'),
   filial_id: z.string().optional(),
@@ -64,7 +64,7 @@ export function NotasFiscaisForm({
     defaultValues: {
       numero_nota: 0,
       data_emissao: new Date().toISOString().split('T')[0],
-      emissor: '',
+      fornecedor: '',
       valor_total: 0,
       status: 'pendente',
       filial_id: '',
@@ -76,7 +76,7 @@ export function NotasFiscaisForm({
       form.reset({
         numero_nota: editItem.numero_nota,
         data_emissao: editItem.data_emissao,
-        emissor: editItem.emissor,
+        fornecedor: editItem.fornecedor,
         valor_total: editItem.valor_total,
         status: editItem.status,
         filial_id: editItem.filial_id ? String(editItem.filial_id) : '',
@@ -85,7 +85,7 @@ export function NotasFiscaisForm({
       form.reset({
         numero_nota: 0,
         data_emissao: new Date().toISOString().split('T')[0],
-        emissor: '',
+        fornecedor: '',
         valor_total: 0,
         status: 'pendente',
         filial_id: '',
@@ -164,12 +164,12 @@ export function NotasFiscaisForm({
             />
             <FormField
               control={form.control}
-              name="emissor"
+              name="fornecedor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fornecedor</FormLabel>
+                  <FormLabel>Parceiro</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nome do fornecedor..." {...field} />
+                    <Input placeholder="Nome do parceiro..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

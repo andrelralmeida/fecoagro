@@ -81,7 +81,7 @@ const textColumns = [
   'banco',
   'agencia',
   'conta_corrente',
-  'emissor',
+  'fornecedor',
   'atividade',
   'centro_de_custos',
   'classificacao',

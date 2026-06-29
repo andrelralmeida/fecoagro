@@ -152,7 +152,7 @@ export interface NotaFiscal {
   user_id: string
   numero_nota: number
   data_emissao: string
-  emissor: string
+  fornecedor: string
   valor_total: number
   status: string
   filial_id: number | null

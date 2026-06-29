@@ -75,9 +75,9 @@ export function NotaFiscalViewDialog({
             </div>
             <div>
               <label className="text-xs font-medium text-gray-500">
-                Fornecedor
+                Parceiro
               </label>
-              <p className="text-sm text-gray-900">{item.emissor}</p>
+              <p className="text-sm text-gray-900">{item.fornecedor}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-2 border-t">
               <div>

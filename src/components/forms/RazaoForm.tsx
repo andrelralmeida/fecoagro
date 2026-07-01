@@ -35,6 +35,7 @@ import { toast } from 'sonner'
 import { filialOptions } from '@/lib/filial-format'
 import { atividadeOptions, centroCustoOptions } from '@/lib/relational-format'
 import { isAnalyticalAccount } from '@/lib/account-utils'
+import { getErrorMessage } from '@/lib/error-utils'
 
 const schema = z.object({
   data: z.string().min(1, 'Data é obrigatória'),
@@ -173,8 +174,8 @@ export function RazaoForm({
       }
       onOpenChange(false)
       onSuccess()
-    } catch {
-      toast.error('Erro ao salvar lançamento')
+    } catch (error) {
+      toast.error(getErrorMessage(error, 'Erro ao salvar lançamento'))
     } finally {
       setSubmitting(false)
     }

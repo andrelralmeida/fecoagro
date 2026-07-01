@@ -88,9 +88,8 @@ export const dreService = {
     )
 
     const totalReceitas = receitasTree.reduce((s, n) => s + n.saldo, 0)
-    const totalDespesas = Math.abs(
-      despesasTree.reduce((s, n) => s + n.saldo, 0),
-    )
+    const totalDespesasRaw = despesasTree.reduce((s, n) => s + n.saldo, 0)
+    const totalDespesas = Math.abs(totalDespesasRaw)
 
     return {
       receitasTree,

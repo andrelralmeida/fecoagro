@@ -101,7 +101,11 @@ async function extractExtratosWithAI(
     if (nums.length === 0) continue
     const valorStr = nums[nums.length - 1][0]
     const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.'))
-    const descricao = line.replace(dateRe, '').replace(valueRe, '').trim().substring(0, 500)
+    const descricao = line
+      .replace(dateRe, '')
+      .replace(valueRe, '')
+      .trim()
+      .substring(0, 500)
     if (!descricao || valor === 0) continue
     records.push({
       user_id: userId,
@@ -247,7 +251,9 @@ Deno.serve(async (req) => {
       case 'extratos_bancarios': {
         if (!bancoId) {
           return new Response(
-            JSON.stringify({ error: 'bancoId is required for extratos_bancarios import' }),
+            JSON.stringify({
+              error: 'bancoId is required for extratos_bancarios import',
+            }),
             {
               status: 400,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },

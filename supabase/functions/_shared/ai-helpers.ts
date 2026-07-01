@@ -58,14 +58,17 @@ export function ruleBasedScore(
   let score = 0
   const reasons: string[] = []
 
-  const dateDiff = Math.abs(
-    new Date(extrato.data).getTime() - new Date(candidate.date).getTime(),
-  ) / (1000 * 60 * 60 * 24)
+  const dateDiff =
+    Math.abs(
+      new Date(extrato.data).getTime() - new Date(candidate.date).getTime(),
+    ) /
+    (1000 * 60 * 60 * 24)
 
   const dateScore = Math.max(0, 30 - dateDiff * 6)
   score += dateScore
   if (dateDiff === 0) reasons.push('Datas identicas')
-  else if (dateDiff <= 2) reasons.push(`Datas proximas (${dateDiff.toFixed(0)} dias)`)
+  else if (dateDiff <= 2)
+    reasons.push(`Datas proximas (${dateDiff.toFixed(0)} dias)`)
 
   const valueDiff =
     Math.abs(extrato.valor - candidate.amount) /
@@ -75,7 +78,10 @@ export function ruleBasedScore(
   if (valueDiff === 0) reasons.push('Valores identicos')
   else if (valueDiff < 0.0001) reasons.push('Valores praticamente identicos')
 
-  const descSim = calculateStringSimilarity(extrato.descricao, candidate.historico || '')
+  const descSim = calculateStringSimilarity(
+    extrato.descricao,
+    candidate.historico || '',
+  )
   score += descSim * 20
   if (descSim > 0.5) reasons.push('Descricoes com similaridade')
 

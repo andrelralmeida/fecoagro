@@ -38,6 +38,7 @@ import {
   Filial,
 } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
+import { getErrorMessage } from '@/lib/error-utils'
 import { toast } from 'sonner'
 import {
   atividadeOptions,
@@ -179,8 +180,8 @@ export function TransactionForm({
       }
       onOpenChange(false)
       onSuccess()
-    } catch {
-      toast.error('Erro ao salvar crítica')
+    } catch (error) {
+      toast.error(getErrorMessage(error, 'Erro ao salvar crítica'))
     } finally {
       setSubmitting(false)
     }

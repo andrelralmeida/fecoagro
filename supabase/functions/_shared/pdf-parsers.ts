@@ -356,16 +356,25 @@ export function parseCritica(text: string, userId: string): any[] {
 
 export function parseCentroCustos(text: string, userId: string): any[] {
   const records: any[] = []
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length >= 3)
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length >= 3)
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
-    records.push({ user_id: userId, centro_de_custos: lines[i].substring(0, 100) })
+    records.push({
+      user_id: userId,
+      centro_de_custos: lines[i].substring(0, 100),
+    })
   }
   return records
 }
 
 export function parseAtividades(text: string, userId: string): any[] {
   const records: any[] = []
-  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length >= 3)
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length >= 3)
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
     records.push({ user_id: userId, atividade: lines[i].substring(0, 100) })
   }

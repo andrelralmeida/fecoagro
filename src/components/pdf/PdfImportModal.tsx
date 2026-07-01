@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import {
   uploadPdf,
   processPdf,
@@ -60,7 +61,10 @@ export function PdfImportModal({
     } catch (error) {
       console.error('PDF import error:', error)
       toast.error(
-        'Erro ao processar PDF. Verifique o arquivo e tente novamente.',
+        getErrorMessage(
+          error,
+          'Erro ao processar PDF. Verifique o arquivo e tente novamente.',
+        ),
       )
     } finally {
       setLoading(false)

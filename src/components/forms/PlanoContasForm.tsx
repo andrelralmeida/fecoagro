@@ -31,6 +31,7 @@ import {
 import { PlanoConta } from '@/lib/types'
 import { createRecord, updateRecord } from '@/services/crudService'
 import { suggestNatureza } from '@/lib/account-utils'
+import { getErrorMessage } from '@/lib/error-utils'
 import { toast } from 'sonner'
 
 const schema = z.object({
@@ -107,8 +108,8 @@ export function PlanoContasForm({
       }
       onOpenChange(false)
       onSuccess()
-    } catch {
-      toast.error('Erro ao salvar conta')
+    } catch (error) {
+      toast.error(getErrorMessage(error, 'Erro ao salvar conta'))
     } finally {
       setSubmitting(false)
     }
